@@ -10,7 +10,7 @@
 .student-dashboard {
   min-height: 100vh;
   background: linear-gradient(135deg, #f5f7fa 0%, #e8edf3 100%);
-  font-family: "PP Neue Montreal", "Inter", system-ui, sans-serif;
+  font-family: 'Montserrat', 'Inter', system-ui, sans-serif;
   color: #1a1a2e;
   display: flex;
   flex-direction: column;
@@ -599,6 +599,5 @@
   .student-dashboard .empty-subtitle {
     font-size: 14px;
   }
-}
 }
 

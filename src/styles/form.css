@@ -7,7 +7,7 @@
   min-height: 100vh;
   background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
   padding: 40px 20px;
-  font-family: "PP Neue Montreal", "Inter", system-ui, sans-serif;
+  font-family: 'Montserrat', 'Inter', system-ui, sans-serif;
 }
 
 .form-card {

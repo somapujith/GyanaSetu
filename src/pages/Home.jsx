@@ -1,7 +1,8 @@
+import { useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-import Silk from '../components/Silk';
-import { useLoaderAnimation } from '../hooks/useLoaderAnimation';
+import Threads from '../components/Threads';
+import VariableProximity from '../components/VariableProximity';
 import { ROUTES } from '../constants/routes';
 import '../styles/landing.css';
 import Counter from '../components/Counter';
@@ -9,8 +10,7 @@ import Counter from '../components/Counter';
 export default function Home() {
   const navigate = useNavigate();
   const { user, userProfile } = useAuthStore();
-
-  useLoaderAnimation();
+  const heroContainerRef = useRef(null);
 
   const handleBrowse = () => {
     if (user) {
@@ -44,33 +44,17 @@ export default function Home() {
 
   return (
     <div className="landing">
-      {/* Loader */}
-      <div className="loader">
-        <div className="overlay">
-          <div className="block" />
-          <div className="block" />
-        </div>
-        <div className="intro-logo">
-          <div className="word" id="word-1"><h1><span>Gyana</span></h1></div>
-          <div className="word" id="word-2"><h1>Setu</h1></div>
-        </div>
-        <div className="divider" />
-        <div className="spinner-container"><div className="spinner" /></div>
-        <div className="counter">
-          {['00', '27', '65', '98', '99'].map((num, i) => (
-            <div className="count" key={i}>
-              {num.split('').map((d, j) => <div className="digit" key={j}><h1>{d}</h1></div>)}
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* Threads backdrop */}
+      <Threads
+        className="threads-backdrop"
+        color={[1, 1, 1]}
+        amplitude={1}
+        distance={0}
+        enableMouseInteraction={true}
+      />
 
       {/* Content */}
       <div className="container">
-        <div className="hero-bg">
-          <Silk speed={4} scale={1} color="#ECEAF3" noiseIntensity={1.05} rotation={0} />
-        </div>
-
         <nav className="nav">
           <a href={ROUTES.HOME} className="logo">
             <span className="brand-mark">📚</span>
@@ -104,9 +88,40 @@ export default function Home() {
             <span>AI-Powered Resource Discovery</span>
           </div>
 
-          <div className="hero-copy">
-            <div className="line"><h1>Share Knowledge, <span className="accent">Grow</span></h1></div>
-            <div className="line"><h1><span className="accent">Together</span></h1></div>
+          <div className="hero-copy" ref={heroContainerRef} style={{ position: 'relative' }}>
+            <div className="line">
+              <VariableProximity
+                label="Share Knowledge,"
+                className="hero-variable-text"
+                fromFontVariationSettings="'wght' 400, 'opsz' 9"
+                toFontVariationSettings="'wght' 1000, 'opsz' 40"
+                containerRef={heroContainerRef}
+                radius={100}
+                falloff="linear"
+              />
+            </div>
+            <div className="line">
+              <VariableProximity
+                label="Grow"
+                className="hero-variable-text accent"
+                fromFontVariationSettings="'wght' 400, 'opsz' 9"
+                toFontVariationSettings="'wght' 1000, 'opsz' 40"
+                containerRef={heroContainerRef}
+                radius={100}
+                falloff="linear"
+              />
+            </div>
+            <div className="line">
+              <VariableProximity
+                label="Together"
+                className="hero-variable-text accent"
+                fromFontVariationSettings="'wght' 400, 'opsz' 9"
+                toFontVariationSettings="'wght' 1000, 'opsz' 40"
+                containerRef={heroContainerRef}
+                radius={100}
+                falloff="linear"
+              />
+            </div>
             <p className="line subtitle">
               The central hub for Hyderabad college students to discover, share, and request academic resources across departments and campuses.
             </p>

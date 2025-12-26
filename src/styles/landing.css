@@ -2,28 +2,28 @@
    LANDING PAGE STYLES - GyanaSetu
    ============================================ */
 
-@import url("https://fonts.cdnfonts.com/css/pp-neue-montreal");
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap");
 
 /* --- Variables --- */
 :root {
-  --primary: #6366f1;
-  --primary-light: #818cf8;
-  --primary-dark: #4f46e5;
-  --accent: #ec4899;
+  --primary: #06b6d4;
+  --primary-light: #22d3ee;
+  --primary-dark: #0891b2;
+  --accent: #14b8a6;
   --dark: #0f172a;
   --dark-light: #1e293b;
   --gray: #64748b;
   --gray-light: #94a3b8;
   --white: #ffffff;
   --off-white: #f8fafc;
-  --text: #f7f9fb;
-  --text-dim: rgba(255, 255, 255, 0.78);
-  --text-mute: rgba(255, 255, 255, 0.6);
-  --glass: rgba(255, 255, 255, 0.1);
-  --glass-border: rgba(255, 255, 255, 0.2);
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --text: #ffffff;
+  --text-dim: rgba(255, 255, 255, 0.9);
+  --text-mute: rgba(255, 255, 255, 0.7);
+  --glass: rgba(255, 255, 255, 0.08);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.2);
   --transition: 200ms ease;
   --radius: 12px;
   --radius-sm: 8px;
@@ -33,7 +33,7 @@
 /* --- Reset for Landing --- */
 .landing {
   min-height: 100vh;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   color: var(--text);
   overflow-x: hidden;
 }
@@ -48,6 +48,7 @@
   font-weight: 700;
   line-height: 1.1;
   letter-spacing: -0.02em;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .landing button {
@@ -82,17 +83,17 @@
 .landing .overlay .block {
   flex: 1;
   height: 100%;
-  background: linear-gradient(180deg, #0a0a1a 0%, #0f172a 50%, #1a1a2e 100%);
+  background: var(--dark);
   clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
   will-change: clip-path;
 }
 
 .landing .overlay .block:nth-child(1) {
-  background: linear-gradient(180deg, #0a0a1a 0%, #0f172a 100%);
+  background: var(--dark);
 }
 
 .landing .overlay .block:nth-child(2) {
-  background: linear-gradient(180deg, #0f172a 0%, #1a1a2e 100%);
+  background: var(--dark-light);
 }
 
 /* Logo animation */
@@ -112,30 +113,28 @@
 
 .landing .intro-logo h1 {
   font-size: clamp(3.5rem, 10vw, 7rem);
-  color: var(--white);
+  color: #ffffff;
   transform: translateY(110%);
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: -0.03em;
-  font-family: 'PP Neue Montreal', 'Inter', system-ui, sans-serif;
+  font-family: 'Montserrat', sans-serif;
+  text-transform: uppercase;
 }
 
 .landing .intro-logo h1 span {
-  background: linear-gradient(135deg, var(--primary-light), #a5b4fc);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--primary);
 }
 
 /* Divider - Vertical line */
 .landing .divider {
   position: absolute;
-  width: 3px;
+  width: 2px;
   height: 80px;
-  background: linear-gradient(180deg, var(--primary-light), var(--primary));
+  background: var(--primary);
   transform: scaleY(0);
   transform-origin: top;
   border-radius: 2px;
-  box-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+  box-shadow: none;
 }
 
 /* Spinner */
@@ -149,8 +148,8 @@
 .landing .spinner {
   width: 36px;
   height: 36px;
-  border: 3px solid rgba(255, 255, 255, 0.15);
-  border-top-color: var(--primary-light);
+  border: 3px solid rgba(255, 255, 255, 0.12);
+  border-top-color: var(--primary);
   border-radius: 50%;
   animation: spinLoader 0.7s linear infinite;
 }
@@ -188,6 +187,7 @@
   transform: translateY(100%);
   font-weight: 700;
   letter-spacing: -0.02em;
+  font-family: 'Montserrat', sans-serif;
 }
 
 /* Skip loader state */
@@ -249,9 +249,7 @@ body.skip-loader .landing .stats {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background:
-    radial-gradient(60% 60% at 50% 40%, rgba(15, 23, 42, 0) 0%, rgba(15, 23, 42, 0.35) 60%, rgba(15, 23, 42, 0.55) 100%),
-    linear-gradient(180deg, rgba(15, 23, 42, 0.35) 0%, rgba(15, 23, 42, 0.55) 100%);
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.15) 0%, rgba(15, 23, 42, 0.3) 100%);
 }
 
 /* ============================================
@@ -265,9 +263,9 @@ body.skip-loader .landing .stats {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(15, 23, 42, 0.5);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .landing .logo {
@@ -286,6 +284,7 @@ body.skip-loader .landing .stats {
   font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: -0.02em;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .landing .nav-links {
@@ -300,6 +299,7 @@ body.skip-loader .landing .stats {
   color: var(--text-mute);
   border-radius: var(--radius-sm);
   transition: var(--transition);
+  font-family: 'Montserrat', sans-serif;
 }
 
 .landing .nav-links button:hover {
@@ -354,7 +354,7 @@ body.skip-loader .landing .stats {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  background: var(--primary);
   color: var(--white);
   font-size: 0.875rem;
   font-weight: 600;
@@ -377,6 +377,7 @@ body.skip-loader .landing .stats {
   font-weight: 600;
   border-radius: var(--radius-full);
   transition: var(--transition);
+  font-family: 'Montserrat', sans-serif;
 }
 
 .landing .nav-btn:hover {
@@ -404,14 +405,15 @@ body.skip-loader .landing .stats {
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(6, 182, 212, 0.12);
+  border: 1px solid rgba(6, 182, 212, 0.3);
   border-radius: var(--radius-full);
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--text);
   margin-bottom: 2rem;
   backdrop-filter: blur(8px);
+  font-family: 'Montserrat', sans-serif;
 }
 
 .landing .pill-icon {
@@ -422,30 +424,38 @@ body.skip-loader .landing .stats {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.5rem;
+  gap: 0.5rem;
 }
 
 .landing .hero-copy .line {
   overflow: hidden;
+  display: flex;
+  justify-content: center;
+  width: 100%;
 }
 
 .landing .hero-copy h1 {
   font-size: clamp(2.5rem, 6vw, 4.5rem);
-  color: var(--text);
+  color: #ffffff;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  text-align: center;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
 }
 
 .landing .hero-copy .accent {
-  background: linear-gradient(135deg, var(--primary), var(--accent));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--primary);
 }
 
 .landing .subtitle {
   font-size: clamp(1rem, 2vw, 1.25rem);
-  color: var(--text-dim);
+  color: rgba(255, 255, 255, 0.9);
   max-width: 600px;
   line-height: 1.6;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 500;
 }
 
 .landing .cta {
@@ -453,19 +463,21 @@ body.skip-loader .landing .stats {
   align-items: center;
   gap: 0.5rem;
   padding: 1rem 2rem;
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  background: var(--primary);
   color: var(--white);
   font-size: 1rem;
   font-weight: 600;
   border-radius: var(--radius-full);
   transition: var(--transition);
-  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+  box-shadow: var(--shadow);
   margin-top: 1rem;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .landing .cta:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+  box-shadow: var(--shadow-lg);
+  background: #0891b2;
 }
 
 .landing .cta ion-icon {
@@ -478,17 +490,18 @@ body.skip-loader .landing .stats {
 }
 
 /* ============================================
-   STATS - Professional Counter Display
+   STATS - Classic Counter Display
    ============================================ */
 .landing .stats {
   display: flex;
-  gap: 4rem;
+  gap: 2rem;
   margin-top: 5rem;
-  padding: 3rem 2rem;
-  border-top: 2px solid rgba(255, 255, 255, 0.15);
-  border-bottom: 2px solid rgba(255, 255, 255, 0.15);
+  padding: 0;
+  border-top: none;
+  border-bottom: none;
   justify-content: center;
-  align-items: flex-start;
+  align-items: stretch;
+  flex-wrap: wrap;
 }
 
 .landing .stat {
@@ -496,53 +509,75 @@ body.skip-loader .landing .stats {
   flex-direction: column;
   align-items: center;
   gap: 1.5rem;
-  flex: 0 1 auto;
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  flex: 0 1 280px;
+  padding: 2.5rem 2rem;
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(12px);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.landing .stat::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(6, 182, 212, 0.05) 100%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
 }
 
 .landing .stat:hover {
-  transform: translateY(-6px);
+  transform: translateY(-12px);
+  border-color: rgba(6, 182, 212, 0.3);
+  box-shadow: 0 20px 50px rgba(6, 182, 212, 0.2), 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.landing .stat:hover::before {
+  opacity: 1;
 }
 
 .landing .stat .val {
   font-size: clamp(2.2rem, 5vw, 3.2rem);
   font-weight: 900;
-  color: var(--white);
+  color: #ffffff;
   letter-spacing: -0.03em;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 16px;
   line-height: 1;
+  font-family: 'Montserrat', sans-serif;
+  position: relative;
+  z-index: 1;
 }
 
 .landing .stat .val > div {
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #ffffff;
 }
 
 .landing .stat .val span {
-  color: var(--primary-light);
+  color: var(--primary);
   font-size: clamp(1.6rem, 4vw, 2.4rem);
   font-weight: 700;
 }
 
 .landing .stat .lbl {
-  font-size: clamp(0.875rem, 2vw, 1rem);
-  color: var(--text-dim);
+  font-size: clamp(0.875rem, 2vw, 1.1rem);
+  color: rgba(255, 255, 255, 0.85);
   font-weight: 600;
   letter-spacing: 0.5px;
   text-transform: capitalize;
   white-space: nowrap;
-}
-
-.landing .stat .lbl {
-  font-size: clamp(0.875rem, 2vw, 1rem);
-  color: var(--text-dim);
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  text-transform: capitalize;
+  font-family: 'Montserrat', sans-serif;
+  position: relative;
+  z-index: 1;
 }
 
 /* ============================================
@@ -573,6 +608,13 @@ body.skip-loader .landing .stats {
     gap: 1.5rem;
     flex-wrap: wrap;
     justify-content: center;
+    padding: 0;
+    margin-top: 3rem;
+  }
+
+  .landing .stat {
+    flex: 0 1 calc(50% - 0.75rem);
+    padding: 1.75rem 1.5rem;
   }
 
   .landing .stat .val {
@@ -601,6 +643,12 @@ body.skip-loader .landing .stats {
 
   .landing .stats {
     gap: 1rem;
+    padding: 0;
+  }
+
+  .landing .stat {
+    flex: 1 1 100%;
+    padding: 1.5rem 1.25rem;
   }
   
   .landing .stat .val {
