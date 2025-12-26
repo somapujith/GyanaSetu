@@ -9,6 +9,7 @@ export const ROUTES = {
   MY_FAVORITES: '/favorites',
 
   ADMIN_LOGIN: '/admin-login',
+  ADMIN_SIGNUP: '/admin-signup',
   ADMIN_DASHBOARD: '/admin-dashboard',
 
   POST_RESOURCE: '/post-resource',

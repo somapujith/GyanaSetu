@@ -9,6 +9,7 @@ import Home from './pages/Home';
 import StudentLogin from './pages/StudentLogin';
 import StudentSignup from './pages/StudentSignup';
 import AdminLogin from './pages/AdminLogin';
+import AdminSignup from './pages/AdminSignup';
 import StudentDashboard from './pages/StudentDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import PostResource from './pages/PostResource';
@@ -137,6 +138,7 @@ function App() {
 
         {/* Admin Routes */}
         <Route path="/admin-login" element={<AdminLogin />} />
+        <Route path="/admin-signup" element={<AdminSignup />} />
         <Route
           path="/admin-dashboard"
           element={

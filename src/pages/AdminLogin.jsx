@@ -108,6 +108,13 @@ export default function AdminLogin() {
         <div className="auth-divider">OR</div>
 
         <div className="auth-footer">
+          <p>Need an admin account?</p>
+          <Link to={ROUTES.ADMIN_SIGNUP} className="auth-link-secondary">
+            Register as Admin
+          </Link>
+        </div>
+
+        <div className="auth-footer" style={{ marginTop: '1rem' }}>
           <p>Are you a student?</p>
           <Link to={ROUTES.STUDENT_LOGIN} className="auth-link-secondary">
             Student Login
