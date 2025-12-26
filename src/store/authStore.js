@@ -4,8 +4,11 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
+  updatePassword,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
 } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
 
 export const useAuthStore = create((set) => ({
@@ -105,4 +108,56 @@ export const useAuthStore = create((set) => ({
 
   // Clear error
   clearError: () => set({ error: null }),
+
+  // Fetch user profile
+  fetchUserProfile: async (userId) => {
+    try {
+      const docRef = doc(db, 'users', userId);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        set({ userProfile: docSnap.data() });
+        return docSnap.data();
+      }
+      return null;
+    } catch (error) {
+      set({ error: error.message });
+      throw error;
+    }
+  },
+
+  // Update user profile
+  updateUserProfile: async (userId, updates) => {
+    try {
+      await updateDoc(doc(db, 'users', userId), updates);
+      const docRef = doc(db, 'users', userId);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        set({ userProfile: docSnap.data() });
+      }
+    } catch (error) {
+      set({ error: error.message });
+      throw error;
+    }
+  },
+
+  // Change password
+  changePassword: async (currentPassword, newPassword) => {
+    try {
+      const user = auth.currentUser;
+      if (!user || !user.email) throw new Error('No user logged in');
+
+      // Re-authenticate user
+      const credential = EmailAuthProvider.credential(user.email, currentPassword);
+      await reauthenticateWithCredential(user, credential);
+      
+      // Update password
+      await updatePassword(user, newPassword);
+    } catch (error) {
+      const errorMessage = error.code === 'auth/wrong-password'
+        ? 'Current password is incorrect'
+        : error.message;
+      set({ error: errorMessage });
+      throw new Error(errorMessage);
+    }
+  },
 }));

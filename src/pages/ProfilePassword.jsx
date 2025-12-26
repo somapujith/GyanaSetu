@@ -1,11 +1,16 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../store/authStore';
+import { useToastStore } from '../store/toastStore';
 import { ROUTES } from '../constants/routes';
 import './Profile.css';
 import './ProfileSettings.css';
 
 export default function ProfilePassword() {
   const navigate = useNavigate();
+  const { changePassword } = useAuthStore();
+  const { showSuccess, showError } = useToastStore();
+  const [loading, setLoading] = useState(false);
   const [passwords, setPasswords] = useState({
     currentPassword: '',
     newPassword: '',
@@ -16,20 +21,52 @@ export default function ProfilePassword() {
     new: false,
     confirm: false,
   });
+  const [errors, setErrors] = useState({});
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setPasswords(prev => ({ ...prev, [name]: value }));
+    // Clear error when user types
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
   };
 
   const toggleShowPassword = (field) => {
     setShowPassword(prev => ({ ...prev, [field]: !prev[field] }));
   };
 
-  const handleSubmit = (e) => {
+  const validateForm = () => {
+    const newErrors = {};
+    if (!passwords.currentPassword) {
+      newErrors.currentPassword = 'Current password is required';
+    }
+    if (!passwords.newPassword) {
+      newErrors.newPassword = 'New password is required';
+    } else if (passwords.newPassword.length < 6) {
+      newErrors.newPassword = 'Password must be at least 6 characters';
+    }
+    if (passwords.newPassword !== passwords.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: Implement password change logic
-    alert('Password updated successfully!');
+    if (!validateForm()) return;
+
+    setLoading(true);
+    try {
+      await changePassword(passwords.currentPassword, passwords.newPassword);
+      showSuccess('Password updated successfully!');
+      setPasswords({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (error) {
+      showError(error.message || 'Failed to update password');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -114,6 +151,7 @@ export default function ProfilePassword() {
                         <ion-icon name={showPassword.current ? 'eye-off-outline' : 'eye-outline'}></ion-icon>
                       </button>
                     </div>
+                    {errors.currentPassword && <span className="error">{errors.currentPassword}</span>}
                   </div>
 
                   <div className="form-group">
@@ -134,7 +172,8 @@ export default function ProfilePassword() {
                         <ion-icon name={showPassword.new ? 'eye-off-outline' : 'eye-outline'}></ion-icon>
                       </button>
                     </div>
-                    <p className="input-hint">Must be at least 8 characters</p>
+                    <p className="input-hint">Must be at least 6 characters</p>
+                    {errors.newPassword && <span className="error">{errors.newPassword}</span>}
                   </div>
 
                   <div className="form-group">
@@ -155,10 +194,13 @@ export default function ProfilePassword() {
                         <ion-icon name={showPassword.confirm ? 'eye-off-outline' : 'eye-outline'}></ion-icon>
                       </button>
                     </div>
+                    {errors.confirmPassword && <span className="error">{errors.confirmPassword}</span>}
                   </div>
 
                   <div className="form-actions">
-                    <button type="submit" className="btn-save">Update Password</button>
+                    <button type="submit" className="btn-save" disabled={loading}>
+                      {loading ? 'Updating...' : 'Update Password'}
+                    </button>
                   </div>
                 </form>
               </div>

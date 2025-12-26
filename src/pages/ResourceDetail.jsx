@@ -4,17 +4,33 @@ import { useAuthStore } from '../store/authStore';
 import { useResourceStore } from '../store/resourceStore';
 import { ROUTES } from '../constants/routes';
 import '../styles/resource-detail.css';
+import '../styles/student-dashboard.css';
 
 const ResourceDetail = () => {
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
   const resource = location.state?.resource;
-  const { user, userProfile } = useAuthStore();
-  const { requestResource, loading } = useResourceStore();
+  const { user, userProfile, logout } = useAuthStore();
+  const { requestResource, loading, favorites } = useResourceStore();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const [showRequestForm, setShowRequestForm] = useState(false);
   const [requestMessage, setRequestMessage] = useState('');
+
+  // Navigation functions
+  const handleGoHome = () => navigate(ROUTES.HOME);
+  const handleGoToDashboard = () => navigate(ROUTES.STUDENT_DASHBOARD);
+  const handleGoToBrowse = () => navigate(ROUTES.BROWSE_RESOURCES);
+  const handleGoToFavorites = () => navigate(ROUTES.MY_FAVORITES);
+  const handleGoToRequests = () => navigate(ROUTES.MY_REQUESTS);
+  const handleGoToProfile = () => navigate(ROUTES.PROFILE);
+  const handleGoToPost = () => navigate(ROUTES.POST_RESOURCE);
+
+  const handleLogout = async () => {
+    await logout();
+    navigate(ROUTES.HOME);
+  };
 
   if (!resource) {
     return (
@@ -45,6 +61,51 @@ const ResourceDetail = () => {
   const isOwner = user?.uid === resource.userId;
 
   return (
+    <div className="student-dashboard">
+      {/* Top Navigation Bar */}
+      <nav className="dashboard-nav">
+        <div className="nav-brand" onClick={handleGoHome}>
+          <span className="brand-icon">📚</span>
+          <span className="brand-text">GyanaSetu</span>
+        </div>
+        
+        <div className={`nav-links ${mobileMenuOpen ? 'open' : ''}`}>
+          <button className="nav-link" onClick={handleGoToDashboard}>
+            <ion-icon name="grid-outline"></ion-icon>
+            Dashboard
+          </button>
+          <button className="nav-link" onClick={handleGoToBrowse}>
+            <ion-icon name="search-outline"></ion-icon>
+            Browse
+          </button>
+          <button className="nav-link" onClick={handleGoToFavorites}>
+            <ion-icon name="bookmark-outline"></ion-icon>
+            Favorites
+            {favorites?.length > 0 && <span className="nav-badge">{favorites.length}</span>}
+          </button>
+          <button className="nav-link" onClick={handleGoToRequests}>
+            <ion-icon name="mail-outline"></ion-icon>
+            My Requests
+          </button>
+          <button className="nav-link" onClick={handleGoToPost}>
+            <ion-icon name="add-circle-outline"></ion-icon>
+            Share Resource
+          </button>
+        </div>
+
+        <div className="nav-actions">
+          <button className="nav-icon-btn" onClick={handleGoToProfile} title="Profile">
+            <ion-icon name="person-circle-outline"></ion-icon>
+          </button>
+          <button className="nav-icon-btn logout" onClick={handleLogout} title="Logout">
+            <ion-icon name="log-out-outline"></ion-icon>
+          </button>
+          <button className="mobile-menu-btn" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+            <ion-icon name={mobileMenuOpen ? 'close-outline' : 'menu-outline'}></ion-icon>
+          </button>
+        </div>
+      </nav>
+
     <div className="detail-container">
       <button className="btn-back" onClick={() => navigate(-1)}>
         ← Back to Resources
@@ -166,6 +227,7 @@ const ResourceDetail = () => {
         </div>
       </div>
     </div>
+  </div>
   );
 };
 

@@ -7,25 +7,26 @@ import '../styles/student-dashboard.css';
 
 export default function MyRequests() {
   const { user, userProfile, logout } = useAuthStore();
-  const { fetchUserResources } = useResourceStore();
+  const { fetchUserResources, favorites } = useResourceStore();
   const navigate = useNavigate();
 
   const [myResources, setMyResources] = useState([]);
   const [incomingRequests, setIncomingRequests] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('requests');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Navigation functions
-  const handleGoBack = () => {
+  const handleGoHome = () => navigate(ROUTES.HOME);
+  const handleGoToDashboard = () => navigate(ROUTES.STUDENT_DASHBOARD);
+  const handleGoToBrowse = () => navigate(ROUTES.BROWSE_RESOURCES);
+  const handleGoToFavorites = () => navigate(ROUTES.MY_FAVORITES);
+  const handleGoToProfile = () => navigate(ROUTES.PROFILE);
+  const handleGoToPost = () => navigate(ROUTES.POST_RESOURCE);
+
+  const handleLogout = async () => {
+    await logout();
     navigate(ROUTES.HOME);
-  };
-
-  const handleGoToBrowse = () => {
-    navigate(ROUTES.BROWSE_RESOURCES);
-  };
-
-  const handleGoToDashboard = () => {
-    navigate(ROUTES.STUDENT_DASHBOARD);
   };
 
   useEffect(() => {
@@ -70,11 +71,6 @@ export default function MyRequests() {
     loadUserResources();
   }, [user, fetchUserResources, navigate]);
 
-  const handleLogout = async () => {
-    await logout();
-    navigate(ROUTES.HOME);
-  };
-
   if (!user) {
     return null;
   }
@@ -82,25 +78,48 @@ export default function MyRequests() {
   return (
     <div className="student-dashboard">
       {/* Top Navigation Bar */}
-      <div className="page-navigation-bar">
-        <button className="nav-back-btn" onClick={handleGoBack} title="Go back to home">
-          ← Back
-        </button>
-        <div className="nav-breadcrumb">
-          <span>My Requests</span>
+      <nav className="dashboard-nav">
+        <div className="nav-brand" onClick={handleGoHome}>
+          <span className="brand-icon">📚</span>
+          <span className="brand-text">GyanaSetu</span>
         </div>
-        <div className="nav-page-links">
-          <button className="nav-link-btn" onClick={handleGoToDashboard} title="Go to dashboard">
+        
+        <div className={`nav-links ${mobileMenuOpen ? 'open' : ''}`}>
+          <button className="nav-link" onClick={handleGoToDashboard}>
+            <ion-icon name="grid-outline"></ion-icon>
             Dashboard
           </button>
-          <button className="nav-link-btn" onClick={handleGoToBrowse} title="Go to browse">
+          <button className="nav-link" onClick={handleGoToBrowse}>
+            <ion-icon name="search-outline"></ion-icon>
             Browse
           </button>
-          <button className="nav-link-btn active" disabled>
-            Requests
+          <button className="nav-link" onClick={handleGoToFavorites}>
+            <ion-icon name="bookmark-outline"></ion-icon>
+            Favorites
+            {favorites?.length > 0 && <span className="nav-badge">{favorites.length}</span>}
+          </button>
+          <button className="nav-link active" onClick={() => setMobileMenuOpen(false)}>
+            <ion-icon name="mail-outline"></ion-icon>
+            My Requests
+          </button>
+          <button className="nav-link" onClick={handleGoToPost}>
+            <ion-icon name="add-circle-outline"></ion-icon>
+            Share Resource
           </button>
         </div>
-      </div>
+
+        <div className="nav-actions">
+          <button className="nav-icon-btn" onClick={handleGoToProfile} title="Profile">
+            <ion-icon name="person-circle-outline"></ion-icon>
+          </button>
+          <button className="nav-icon-btn logout" onClick={handleLogout} title="Logout">
+            <ion-icon name="log-out-outline"></ion-icon>
+          </button>
+          <button className="mobile-menu-btn" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+            <ion-icon name={mobileMenuOpen ? 'close-outline' : 'menu-outline'}></ion-icon>
+          </button>
+        </div>
+      </nav>
 
       <div className="dashboard-header">
         <div className="header-content">
@@ -110,15 +129,9 @@ export default function MyRequests() {
           </p>
         </div>
         <div className="header-actions">
-          <button className="btn-primary" onClick={() => navigate(ROUTES.POST_RESOURCE)}>
+          <button className="btn-primary" onClick={handleGoToPost}>
             ➕ Share Resource
           </button>
-          <div className="user-menu">
-            <span className="user-name">{userProfile?.fullName}</span>
-            <button className="btn-secondary" onClick={handleLogout}>
-              Logout
-            </button>
-          </div>
         </div>
       </div>
 

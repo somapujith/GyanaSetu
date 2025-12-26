@@ -1,43 +1,61 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../constants/routes';
+import { useAuthStore } from '../store/authStore';
+import { useToastStore } from '../store/toastStore';
 import './Profile.css';
 import './ProfileSettings.css';
 
 export default function ProfileAccess() {
   const navigate = useNavigate();
-  const [sessions] = useState([
+  const { logout } = useAuthStore();
+  const { showToast } = useToastStore();
+  const [loading, setLoading] = useState(false);
+  
+  // Current session - in a real app this would come from Firebase Auth
+  const [sessions, setSessions] = useState([
     {
-      id: 1,
-      device: 'Windows PC - Chrome',
-      location: 'Hyderabad, India',
-      lastActive: '2 minutes ago',
+      id: 'current',
+      device: detectDevice(),
+      location: 'Current Location',
+      lastActive: 'Now',
       current: true,
-    },
-    {
-      id: 2,
-      device: 'iPhone 14 - Safari',
-      location: 'Mumbai, India',
-      lastActive: '2 hours ago',
-      current: false,
-    },
-    {
-      id: 3,
-      device: 'MacBook Pro - Chrome',
-      location: 'Bangalore, India',
-      lastActive: '1 day ago',
-      current: false,
     },
   ]);
 
-  const handleLogout = (sessionId) => {
-    // TODO: Implement logout logic
-    alert(`Logged out session ${sessionId}`);
+  // Helper function to detect current device
+  function detectDevice() {
+    const ua = navigator.userAgent;
+    if (/iPhone|iPad|iPod/.test(ua)) return 'iOS Device - Safari';
+    if (/Android/.test(ua)) return 'Android Device - Chrome';
+    if (/Mac/.test(ua)) return 'Mac - ' + (ua.includes('Chrome') ? 'Chrome' : 'Safari');
+    if (/Windows/.test(ua)) return 'Windows PC - ' + (ua.includes('Chrome') ? 'Chrome' : ua.includes('Firefox') ? 'Firefox' : 'Edge');
+    return 'Unknown Device';
+  }
+
+  const handleLogout = async (sessionId) => {
+    // For current session, logout the user
+    if (sessionId === 'current') {
+      await handleLogoutAll();
+      return;
+    }
+    
+    // For other sessions, remove from list (in a real app, this would invalidate the session token)
+    setSessions(prev => prev.filter(s => s.id !== sessionId));
+    showToast('Session logged out successfully', 'success');
   };
 
-  const handleLogoutAll = () => {
-    // TODO: Implement logout all logic
-    alert('Logged out from all devices');
+  const handleLogoutAll = async () => {
+    setLoading(true);
+    try {
+      await logout();
+      showToast('Logged out from all devices', 'success');
+      navigate(ROUTES.HOME);
+    } catch (error) {
+      showToast('Failed to logout: ' + error.message, 'error');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -130,8 +148,8 @@ export default function ProfileAccess() {
                   ))}
                 </div>
                 <div className="sessions-actions">
-                  <button className="btn-danger" onClick={handleLogoutAll}>
-                    Logout from all devices
+                  <button className="btn-danger" onClick={handleLogoutAll} disabled={loading}>
+                    {loading ? 'Logging out...' : 'Logout from all devices'}
                   </button>
                 </div>
               </div>

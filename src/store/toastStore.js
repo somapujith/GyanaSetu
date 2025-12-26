@@ -30,6 +30,18 @@ const useToastStore = create((set) => ({
     }));
   },
 
+  showToast: (message, type = 'info', duration = 3000) => {
+    return useToastStore.getState().addToast(message, type, duration);
+  },
+
+  showSuccess: (message, duration) => {
+    return useToastStore.getState().addToast(message, 'success', duration);
+  },
+
+  showError: (message, duration) => {
+    return useToastStore.getState().addToast(message, 'error', duration);
+  },
+
   success: (message, duration) => {
     return useToastStore.getState().addToast(message, 'success', duration);
   },
@@ -47,4 +59,6 @@ const useToastStore = create((set) => ({
   },
 }));
 
+// Support both named and default exports
+export { useToastStore };
 export default useToastStore;

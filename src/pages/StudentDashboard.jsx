@@ -11,7 +11,7 @@ import '../styles/student-dashboard.css';
 
 export default function StudentDashboard() {
   const { user, userProfile, logout } = useAuthStore();
-  const { resources, fetchResources, searchResources, fetchFavorites } = useResourceStore();
+  const { resources, fetchResources, searchResources, fetchFavorites, favorites } = useResourceStore();
   const navigate = useNavigate();
 
   const [selectedCategory, setSelectedCategory] = useState(FILTER_ALL);
@@ -20,6 +20,7 @@ export default function StudentDashboard() {
   );
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedResource, setSelectedResource] = useState(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -72,8 +73,60 @@ export default function StudentDashboard() {
 
   const categories = RESOURCE_CATEGORIES;
 
+  // Navigation handlers
+  const handleGoHome = () => navigate(ROUTES.HOME);
+  const handleGoToBrowse = () => navigate(ROUTES.BROWSE_RESOURCES);
+  const handleGoToFavorites = () => navigate(ROUTES.MY_FAVORITES);
+  const handleGoToRequests = () => navigate(ROUTES.MY_REQUESTS);
+  const handleGoToProfile = () => navigate(ROUTES.PROFILE);
+  const handleGoToPost = () => navigate(ROUTES.POST_RESOURCE);
+
   return (
     <div className="student-dashboard">
+      {/* Top Navigation Bar */}
+      <nav className="dashboard-nav">
+        <div className="nav-brand" onClick={handleGoHome}>
+          <span className="brand-icon">📚</span>
+          <span className="brand-text">GyanaSetu</span>
+        </div>
+        
+        <div className={`nav-links ${mobileMenuOpen ? 'open' : ''}`}>
+          <button className="nav-link active" onClick={() => setMobileMenuOpen(false)}>
+            <ion-icon name="grid-outline"></ion-icon>
+            Dashboard
+          </button>
+          <button className="nav-link" onClick={handleGoToBrowse}>
+            <ion-icon name="search-outline"></ion-icon>
+            Browse
+          </button>
+          <button className="nav-link" onClick={handleGoToFavorites}>
+            <ion-icon name="bookmark-outline"></ion-icon>
+            Favorites
+            {favorites?.length > 0 && <span className="nav-badge">{favorites.length}</span>}
+          </button>
+          <button className="nav-link" onClick={handleGoToRequests}>
+            <ion-icon name="mail-outline"></ion-icon>
+            My Requests
+          </button>
+          <button className="nav-link" onClick={handleGoToPost}>
+            <ion-icon name="add-circle-outline"></ion-icon>
+            Share Resource
+          </button>
+        </div>
+
+        <div className="nav-actions">
+          <button className="nav-icon-btn" onClick={handleGoToProfile} title="Profile">
+            <ion-icon name="person-circle-outline"></ion-icon>
+          </button>
+          <button className="nav-icon-btn logout" onClick={handleLogout} title="Logout">
+            <ion-icon name="log-out-outline"></ion-icon>
+          </button>
+          <button className="mobile-menu-btn" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+            <ion-icon name={mobileMenuOpen ? 'close-outline' : 'menu-outline'}></ion-icon>
+          </button>
+        </div>
+      </nav>
+
       <div className="dashboard-header">
         <div className="header-content">
           <h1>🎓 {UI_TEXT.studentDashboardTitle}</h1>
@@ -82,15 +135,9 @@ export default function StudentDashboard() {
           </p>
         </div>
         <div className="header-actions">
-          <button className="btn-primary" onClick={() => navigate(ROUTES.POST_RESOURCE)}>
+          <button className="btn-primary" onClick={handleGoToPost}>
             ➕ {UI_TEXT.shareResource}
           </button>
-          <div className="user-menu">
-            <span className="user-name">{userProfile?.fullName}</span>
-            <button className="btn-secondary" onClick={handleLogout}>
-              {UI_TEXT.logout}
-            </button>
-          </div>
         </div>
       </div>
 
