@@ -138,6 +138,42 @@ const ResourceDetail = () => {
 
           <p className="description">{resource.description}</p>
 
+          {/* File Preview Section */}
+          {resource.files && resource.files.length > 0 && resource.files[0].embedUrl && (
+            <div className="file-preview-section">
+              <h3 className="preview-title">📄 File Preview</h3>
+              <div className="file-preview-container">
+                <iframe
+                  src={resource.files[0].embedUrl}
+                  className="file-preview-iframe"
+                  allow="autoplay"
+                  title="File Preview"
+                ></iframe>
+              </div>
+              <div className="preview-actions">
+                <a 
+                  href={resource.files[0].viewUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="btn-preview"
+                >
+                  <ion-icon name="open-outline"></ion-icon>
+                  Open in Google Drive
+                </a>
+                <a 
+                  href={resource.files[0].downloadUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="btn-download"
+                  onClick={() => incrementDownloads(resource.id)}
+                >
+                  <ion-icon name="download-outline"></ion-icon>
+                  Download
+                </a>
+              </div>
+            </div>
+          )}
+
           <div className="details-grid">
             <div className="detail-item">
               <span className="label">Owner</span>
