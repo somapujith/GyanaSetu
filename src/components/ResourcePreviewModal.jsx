@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useResourceStore } from '../store/resourceStore';
@@ -17,10 +16,7 @@ const CATEGORY_ICONS = {
 export default function ResourcePreviewModal({ resource, onClose }) {
   const navigate = useNavigate();
   const { user, userProfile } = useAuthStore();
-  const { requestResource, loading, incrementDownloads } = useResourceStore();
-  const [requestMessage, setRequestMessage] = useState('');
-  const [showRequestForm, setShowRequestForm] = useState(false);
-  const [requestSent, setRequestSent] = useState(false);
+  const { incrementDownloads } = useResourceStore();
 
   if (!resource) return null;
 
@@ -36,7 +32,7 @@ export default function ResourcePreviewModal({ resource, onClose }) {
       await incrementDownloads(resource.id);
     }
 
-    // If resource has a downloadable file/link
+    // Download the file directly
     if (resource.fileUrl || resource.image) {
       const link = document.createElement('a');
       link.href = resource.fileUrl || resource.image;
@@ -46,34 +42,14 @@ export default function ResourcePreviewModal({ resource, onClose }) {
       link.click();
       document.body.removeChild(link);
     } else {
-      // Show request form for physical resources
-      setShowRequestForm(true);
-    }
-  };
-
-  const handleRequest = async (e) => {
-    e.preventDefault();
-    if (!user) {
-      onClose();
-      navigate(ROUTES.STUDENT_LOGIN);
-      return;
-    }
-
-    try {
-      await requestResource(resource.id, user.uid, requestMessage);
-      setRequestSent(true);
-      setRequestMessage('');
-      setTimeout(() => {
-        setShowRequestForm(false);
-        setRequestSent(false);
-      }, 2000);
-    } catch (error) {
-      console.error('Request error:', error);
+      // If no file, open owner's email
+      if (resource.userEmail) {
+        window.location.href = `mailto:${resource.userEmail}?subject=Request for ${resource.title}`;
+      }
     }
   };
 
   const isOwner = user?.uid === resource.userId;
-  const isDigitalResource = resource.fileUrl || resource.category === 'notes' || resource.category === 'projects';
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -168,52 +144,12 @@ export default function ResourcePreviewModal({ resource, onClose }) {
                     Edit Resource
                   </button>
                 </div>
-              ) : showRequestForm ? (
-                <form onSubmit={handleRequest} className="request-form">
-                  {requestSent ? (
-                    <div className="success-message">
-                      <ion-icon name="checkmark-circle" />
-                      Request sent successfully!
-                    </div>
-                  ) : (
-                    <>
-                      <textarea
-                        value={requestMessage}
-                        onChange={(e) => setRequestMessage(e.target.value)}
-                        placeholder="Tell the owner why you need this resource and when you can pick it up..."
-                        rows="3"
-                        required
-                      />
-                      <div className="form-buttons">
-                        <button type="submit" className="btn-primary" disabled={loading}>
-                          {loading ? 'Sending...' : 'Send Request'}
-                        </button>
-                        <button type="button" className="btn-secondary" onClick={() => setShowRequestForm(false)}>
-                          Cancel
-                        </button>
-                      </div>
-                    </>
-                  )}
-                </form>
               ) : (
                 <div className="cta-buttons">
                   <button className="btn-download" onClick={handleDownload}>
-                    <ion-icon name={isDigitalResource ? 'download-outline' : 'hand-right-outline'} />
-                    {isDigitalResource ? 'Download Resource' : 'Get Resource'}
+                    <ion-icon name="download-outline" />
+                    Download
                   </button>
-                  {!isDigitalResource && (
-                    <button className="btn-request" onClick={() => {
-                      if (!user) {
-                        onClose();
-                        navigate(ROUTES.STUDENT_LOGIN);
-                      } else {
-                        setShowRequestForm(true);
-                      }
-                    }}>
-                      <ion-icon name="chatbubble-outline" />
-                      Send Request
-                    </button>
-                  )}
                 </div>
               )}
             </div>
