@@ -9,11 +9,12 @@ export default function AdminLogin() {
   const [password, setPassword] = useState('');
   const [adminCode, setAdminCode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const { login, error, loading } = useAuthStore();
+  const { login, error, loading, clearError } = useAuthStore();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    clearError();
 
     if (!email || !password || !adminCode) {
       alert('Please fill in all fields');
@@ -35,9 +36,9 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-background">
-        <Silk speed={5} scale={1} color="#7B7481" noiseIntensity={1.5} rotation={0} />
+    <div className="auth-page admin-auth-page">
+      <div className="auth-background admin-background">
+        <div className="admin-bg-pattern"></div>
       </div>
       <div className="auth-container">
       <div className="auth-card admin-card">
