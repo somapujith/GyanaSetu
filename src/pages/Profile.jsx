@@ -81,29 +81,45 @@ export default function Profile() {
 
     setUploading(true);
     try {
-      // Upload to Firebase Storage
-      const photoURL = await uploadProfilePhoto(file, user.uid);
-      
-      // Update Firestore
-      await updateDoc(doc(db, 'users', user.uid), {
-        photoURL: photoURL,
-      });
+      // Convert to base64
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        try {
+          const base64String = reader.result;
+          
+          // Update Firestore with base64 image
+          await updateDoc(doc(db, 'users', user.uid), {
+            photoURL: base64String,
+          });
 
-      // Update local state
-      setProfile(prev => ({ 
-        ...prev, 
-        photo: file, 
-        photoPreview: photoURL 
-      }));
+          // Update local state
+          setProfile(prev => ({ 
+            ...prev, 
+            photo: file, 
+            photoPreview: base64String 
+          }));
 
-      // Refresh user profile
-      await fetchUserProfile(user.uid);
+          // Refresh user profile
+          await fetchUserProfile(user.uid);
+          
+          showSuccess('Profile photo updated successfully!');
+          setUploading(false);
+        } catch (error) {
+          console.error('Error uploading photo:', error);
+          showError('Failed to upload photo. Please try again.');
+          setUploading(false);
+        }
+      };
       
-      showSuccess('Profile photo updated successfully!');
+      reader.onerror = () => {
+        showError('Failed to read image file');
+        setUploading(false);
+      };
+      
+      reader.readAsDataURL(file);
     } catch (error) {
       console.error('Error uploading photo:', error);
       showError('Failed to upload photo. Please try again.');
-    } finally {
       setUploading(false);
     }
   };
