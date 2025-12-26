@@ -8,7 +8,7 @@ import '../styles/admin-dashboard.css';
 
 export default function AdminDashboard() {
   const { user, userProfile, logout } = useAuthStore();
-  const { resources, updateResource, deleteResource } = useResourceStore();
+  const { resources, fetchResources, updateResource, deleteResource } = useResourceStore();
   const { showSuccess, showError } = useToastStore();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
@@ -25,6 +25,13 @@ export default function AdminDashboard() {
       navigate(ROUTES.ADMIN_LOGIN);
     }
   }, [user, userProfile, navigate]);
+
+  // Fetch all resources for admin (including pending)
+  useEffect(() => {
+    if (user && userProfile?.role === 'admin') {
+      fetchResources({}); // Fetch all resources without status filter
+    }
+  }, [user, userProfile, fetchResources]);
 
   useEffect(() => {
     // Calculate stats

@@ -55,6 +55,7 @@ export default function BrowseResources() {
         await fetchResources({
           category: selectedCategory === FILTER_ALL ? null : selectedCategory,
           college: selectedCollege === FILTER_ALL ? null : selectedCollege,
+          status: 'available', // Only show approved resources to students
         });
         // Load user's favorites
         if (user) {

@@ -37,6 +37,7 @@ export default function StudentDashboard() {
     fetchResources({
       category: selectedCategory === FILTER_ALL ? null : selectedCategory,
       college: selectedCollege === FILTER_ALL ? null : selectedCollege,
+      status: 'available', // Only show approved resources
     });
     // Load user favorites
     if (user) {
@@ -53,6 +54,7 @@ export default function StudentDashboard() {
       fetchResources({
         category: selectedCategory === FILTER_ALL ? null : selectedCategory,
         college: selectedCollege === FILTER_ALL ? null : selectedCollege,
+        status: 'available', // Only show approved resources
       });
     }
   };

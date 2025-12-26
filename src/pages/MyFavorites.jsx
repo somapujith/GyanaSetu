@@ -42,7 +42,7 @@ export default function MyFavorites() {
       setIsLoading(true);
       try {
         await fetchFavorites(user.uid);
-        await fetchResources();
+        await fetchResources({ status: 'available' }); // Only show approved resources
       } catch (error) {
         console.error('Error loading favorites:', error);
       } finally {
