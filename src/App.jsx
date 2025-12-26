@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
 import { ROUTES } from './constants/routes';
+import Toast from './components/Toast';
 
 // Pages
 import Home from './pages/Home';
@@ -58,6 +59,7 @@ function App() {
 
   return (
     <Router>
+      <Toast />
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Home />} />

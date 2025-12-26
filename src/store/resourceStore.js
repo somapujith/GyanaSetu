@@ -3,6 +3,7 @@ import {
   collection,
   addDoc,
   getDocs,
+  getDoc,
   query,
   where,
   orderBy,
@@ -10,23 +11,39 @@ import {
   doc,
   deleteDoc,
   serverTimestamp,
+  increment,
+  arrayUnion,
+  arrayRemove,
+  limit,
+  startAfter,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 
 export const useResourceStore = create((set, get) => ({
   resources: [],
+  favorites: [],
+  recentSearches: [],
   loading: false,
   error: null,
+  lastVisible: null,
+  hasMore: true,
 
-  // Create new resource
-  createResource: async (resourceData) => {
+  // Create new resource (with approval workflow)
+  createResource: async (resourceData, userId) => {
     try {
       set({ error: null, loading: true });
       const docRef = await addDoc(collection(db, 'resources'), {
         ...resourceData,
+        uploadedBy: userId,
         createdAt: serverTimestamp(),
-        requests: [],
-        status: 'available',
+        updatedAt: serverTimestamp(),
+        status: 'pending', // pending, approved, rejected
+        downloads: 0,
+        views: 0,
+        favorites: 0,
+        rating: 0,
+        reviewCount: 0,
+        tags: resourceData.tags || [],
       });
       return docRef.id;
     } catch (error) {
