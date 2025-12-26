@@ -91,7 +91,12 @@ export default function Home() {
                   <span className="badge">3</span>
                   <ion-icon name="notifications-outline" />
                 </button>
-                <button type="button" className="nav-avatar" onClick={() => navigate(ROUTES.STUDENT_DASHBOARD)}>{initials}</button>
+                <button type="button" className="nav-avatar" onClick={() => navigate(ROUTES.PROFILE)} title="Profile">
+                  {initials}
+                </button>
+                <button type="button" className="nav-profile" onClick={() => navigate(ROUTES.PROFILE)} title="Profile">
+                  <ion-icon name="person-circle-outline" style={{ fontSize: 28, verticalAlign: 'middle' }} />
+                </button>
               </>
             ) : (
               <button type="button" className="nav-btn" onClick={() => navigate(ROUTES.STUDENT_LOGIN)}>Sign In</button>

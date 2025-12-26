@@ -13,6 +13,11 @@ import AdminDashboard from './pages/AdminDashboard';
 import PostResource from './pages/PostResource';
 import ResourceDetail from './pages/ResourceDetail';
 import BrowseResources from './pages/BrowseResources';
+
+import Profile from './pages/Profile';
+import ProfileNotifications from './pages/ProfileNotifications';
+import ProfilePassword from './pages/ProfilePassword';
+import ProfileAccess from './pages/ProfileAccess';
 import MyRequests from './pages/MyRequests';
 
 // Legacy routes redirect to the new student/admin flow
@@ -56,6 +61,40 @@ function App() {
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Home />} />
+
+        {/* Profile Page Route */}
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile/notifications"
+          element={
+            <ProtectedRoute>
+              <ProfileNotifications />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile/password"
+          element={
+            <ProtectedRoute>
+              <ProfilePassword />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile/access"
+          element={
+            <ProtectedRoute>
+              <ProfileAccess />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Student Routes */}
         <Route path="/student-login" element={<StudentLogin />} />

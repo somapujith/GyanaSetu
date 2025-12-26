@@ -12,5 +12,7 @@ export const ROUTES = {
 
   POST_RESOURCE: '/post-resource',
 
+  PROFILE: '/profile',
+
   resourceDetail: (id) => `/resource/${id}`,
 };
