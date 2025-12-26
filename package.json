@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "npx vite build",
     "preview": "vite preview",
     "firebase:setup": "node scripts/setupFirebase.js",
     "firebase:deploy-rules": "firebase deploy --only firestore:rules",
