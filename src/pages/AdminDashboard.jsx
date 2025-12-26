@@ -3,12 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useResourceStore } from '../store/resourceStore';
 import { useToastStore } from '../store/toastStore';
+import { uploadResourceFile } from '../services/storage';
 import { ROUTES } from '../constants/routes';
+import { CATEGORY_LABELS, RESOURCE_CATEGORIES } from '../constants/resources';
+import { COLLEGES } from '../constants/colleges';
+import { DEPARTMENTS } from '../constants/departments';
 import '../styles/admin-dashboard.css';
 
 export default function AdminDashboard() {
   const { user, userProfile, logout } = useAuthStore();
-  const { resources, fetchResources, updateResource, deleteResource } = useResourceStore();
+  const { resources, fetchResources, createResource, updateResource, deleteResource } = useResourceStore();
   const { showSuccess, showError } = useToastStore();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
@@ -19,6 +23,24 @@ export default function AdminDashboard() {
     totalRequests: 0,
     activeToday: 0,
   });
+
+  // Add Resource Form State
+  const [resourceForm, setResourceForm] = useState({
+    title: '',
+    description: '',
+    category: 'books',
+    condition: 'good',
+    college: '',
+    department: '',
+    location: '',
+    availableFrom: new Date().toISOString().split('T')[0],
+    availableTo: '',
+    tags: '',
+  });
+  const [resourceFile, setResourceFile] = useState(null);
+  const [filePreview, setFilePreview] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   useEffect(() => {
     if (!user || userProfile?.role !== 'admin') {
@@ -77,6 +99,133 @@ export default function AdminDashboard() {
     navigate(ROUTES.HOME);
   };
 
+  // Add Resource Form Handlers
+  const handleResourceFormChange = (e) => {
+    const { name, value } = e.target;
+    setResourceForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files[0];
+    if (!selectedFile) return;
+
+    const maxSize = 50 * 1024 * 1024; // 50MB
+    if (selectedFile.size > maxSize) {
+      showError('File size must be less than 50MB');
+      return;
+    }
+
+    const allowedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-powerpoint',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      'video/mp4',
+      'image/jpeg',
+      'image/png',
+    ];
+
+    if (!allowedTypes.includes(selectedFile.type)) {
+      showError('Invalid file type. Allowed: PDF, DOC, DOCX, PPT, PPTX, MP4, JPG, PNG');
+      return;
+    }
+
+    setResourceFile(selectedFile);
+
+    if (selectedFile.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onloadend = () => setFilePreview(reader.result);
+      reader.readAsDataURL(selectedFile);
+    } else {
+      setFilePreview(null);
+    }
+  };
+
+  const removeFile = () => {
+    setResourceFile(null);
+    setFilePreview(null);
+    setUploadProgress(0);
+  };
+
+  const resetResourceForm = () => {
+    setResourceForm({
+      title: '',
+      description: '',
+      category: 'books',
+      condition: 'good',
+      college: '',
+      department: '',
+      location: '',
+      availableFrom: new Date().toISOString().split('T')[0],
+      availableTo: '',
+      tags: '',
+    });
+    setResourceFile(null);
+    setFilePreview(null);
+    setUploadProgress(0);
+  };
+
+  const handleAddResource = async (e) => {
+    e.preventDefault();
+
+    // Validation
+    if (!resourceForm.title.trim()) {
+      showError('Please enter a title');
+      return;
+    }
+    if (!resourceForm.description.trim()) {
+      showError('Please enter a description');
+      return;
+    }
+    if (!resourceForm.college) {
+      showError('Please select a college');
+      return;
+    }
+    if (!resourceForm.department) {
+      showError('Please select a department');
+      return;
+    }
+
+    try {
+      setUploading(true);
+      
+      let fileUrl = null;
+      let fileName = null;
+
+      if (resourceFile) {
+        const uploadResult = await uploadResourceFile(resourceFile, (progress) => {
+          setUploadProgress(progress);
+        });
+        fileUrl = uploadResult.url;
+        fileName = uploadResult.fileName;
+      }
+
+      const resourceData = {
+        ...resourceForm,
+        fileUrl,
+        fileName,
+        tags: resourceForm.tags.split(',').map(t => t.trim()).filter(t => t),
+        status: 'available', // Admin resources are auto-approved
+        userId: user.uid,
+        userName: userProfile?.fullName || 'Admin',
+        userEmail: userProfile?.email || 'admin@gyanasetu.com',
+        views: 0,
+        downloads: 0,
+      };
+
+      await createResource(resourceData);
+      showSuccess('Resource added successfully!');
+      resetResourceForm();
+      setActiveTab('resources'); // Switch to resources tab to see the new resource
+    } catch (error) {
+      console.error('Error adding resource:', error);
+      showError('Failed to add resource. Please try again.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const getResourcesByCollege = () => {
     const colleges = {};
     resources.forEach((res) => {
@@ -114,6 +263,12 @@ export default function AdminDashboard() {
               📊 Overview
             </button>
             <button
+              className={`nav-item ${activeTab === 'add-resource' ? 'active' : ''}`}
+              onClick={() => setActiveTab('add-resource')}
+            >
+              ➕ Add Resource
+            </button>
+            <button
               className={`nav-item ${activeTab === 'resources' ? 'active' : ''}`}
               onClick={() => setActiveTab('resources')}
             >
@@ -124,6 +279,9 @@ export default function AdminDashboard() {
               onClick={() => setActiveTab('approvals')}
             >
               ✅ Pending Approvals
+              {stats.pendingApprovals > 0 && (
+                <span className="nav-badge">{stats.pendingApprovals}</span>
+              )}
             </button>
             <button
               className={`nav-item ${activeTab === 'users' ? 'active' : ''}`}
@@ -227,13 +385,270 @@ export default function AdminDashboard() {
             </div>
           )}
 
+          {/* Add Resource Tab */}
+          {activeTab === 'add-resource' && (
+            <div className="tab-content">
+              <div className="add-resource-header">
+                <h2>➕ Add New Resource</h2>
+                <p className="tab-description">Upload resources directly to the platform. Admin uploads are auto-approved.</p>
+              </div>
+
+              <form className="admin-resource-form" onSubmit={handleAddResource}>
+                <div className="form-grid">
+                  {/* Left Column */}
+                  <div className="form-column">
+                    <div className="form-section">
+                      <h3>📝 Basic Information</h3>
+                      
+                      <div className="form-group">
+                        <label htmlFor="title">Resource Title *</label>
+                        <input
+                          type="text"
+                          id="title"
+                          name="title"
+                          value={resourceForm.title}
+                          onChange={handleResourceFormChange}
+                          placeholder="e.g., Data Structures & Algorithms Notes"
+                          required
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label htmlFor="description">Description *</label>
+                        <textarea
+                          id="description"
+                          name="description"
+                          value={resourceForm.description}
+                          onChange={handleResourceFormChange}
+                          placeholder="Provide a detailed description of the resource..."
+                          rows={4}
+                          required
+                        />
+                      </div>
+
+                      <div className="form-row">
+                        <div className="form-group">
+                          <label htmlFor="category">Category *</label>
+                          <select
+                            id="category"
+                            name="category"
+                            value={resourceForm.category}
+                            onChange={handleResourceFormChange}
+                          >
+                            {RESOURCE_CATEGORIES.filter(c => c !== 'all').map((cat) => (
+                              <option key={cat} value={cat}>
+                                {CATEGORY_LABELS[cat] || cat}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="form-group">
+                          <label htmlFor="condition">Condition</label>
+                          <select
+                            id="condition"
+                            name="condition"
+                            value={resourceForm.condition}
+                            onChange={handleResourceFormChange}
+                          >
+                            <option value="excellent">Excellent</option>
+                            <option value="good">Good</option>
+                            <option value="fair">Fair</option>
+                            <option value="digital">Digital</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="form-section">
+                      <h3>📍 Location Details</h3>
+                      
+                      <div className="form-row">
+                        <div className="form-group">
+                          <label htmlFor="college">College *</label>
+                          <select
+                            id="college"
+                            name="college"
+                            value={resourceForm.college}
+                            onChange={handleResourceFormChange}
+                            required
+                          >
+                            <option value="">Select College</option>
+                            {COLLEGES.map((college) => (
+                              <option key={college} value={college}>
+                                {college}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="form-group">
+                          <label htmlFor="department">Department *</label>
+                          <select
+                            id="department"
+                            name="department"
+                            value={resourceForm.department}
+                            onChange={handleResourceFormChange}
+                            required
+                          >
+                            <option value="">Select Department</option>
+                            {DEPARTMENTS.map((dept) => (
+                              <option key={dept} value={dept}>
+                                {dept}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="form-group">
+                        <label htmlFor="location">Specific Location</label>
+                        <input
+                          type="text"
+                          id="location"
+                          name="location"
+                          value={resourceForm.location}
+                          onChange={handleResourceFormChange}
+                          placeholder="e.g., Library 2nd Floor, Lab Block A"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Column */}
+                  <div className="form-column">
+                    <div className="form-section">
+                      <h3>📅 Availability</h3>
+                      
+                      <div className="form-row">
+                        <div className="form-group">
+                          <label htmlFor="availableFrom">Available From *</label>
+                          <input
+                            type="date"
+                            id="availableFrom"
+                            name="availableFrom"
+                            value={resourceForm.availableFrom}
+                            onChange={handleResourceFormChange}
+                            required
+                          />
+                        </div>
+
+                        <div className="form-group">
+                          <label htmlFor="availableTo">Available Until (Optional)</label>
+                          <input
+                            type="date"
+                            id="availableTo"
+                            name="availableTo"
+                            value={resourceForm.availableTo}
+                            onChange={handleResourceFormChange}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="form-group">
+                        <label htmlFor="tags">Tags (comma separated)</label>
+                        <input
+                          type="text"
+                          id="tags"
+                          name="tags"
+                          value={resourceForm.tags}
+                          onChange={handleResourceFormChange}
+                          placeholder="e.g., programming, algorithms, notes"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-section">
+                      <h3>📎 Upload File</h3>
+                      
+                      <div className="file-upload-area">
+                        {!resourceFile ? (
+                          <label className="file-drop-zone" htmlFor="file-input">
+                            <div className="drop-zone-content">
+                              <span className="upload-icon">📤</span>
+                              <p>Click to upload or drag & drop</p>
+                              <span className="file-types">PDF, DOC, DOCX, PPT, PPTX, MP4, JPG, PNG (max 50MB)</span>
+                            </div>
+                            <input
+                              type="file"
+                              id="file-input"
+                              onChange={handleFileChange}
+                              style={{ display: 'none' }}
+                              accept=".pdf,.doc,.docx,.ppt,.pptx,.mp4,.jpg,.jpeg,.png"
+                            />
+                          </label>
+                        ) : (
+                          <div className="file-preview">
+                            {filePreview ? (
+                              <img src={filePreview} alt="Preview" className="image-preview" />
+                            ) : (
+                              <div className="file-icon">📄</div>
+                            )}
+                            <div className="file-info">
+                              <p className="file-name">{resourceFile.name}</p>
+                              <p className="file-size">{(resourceFile.size / (1024 * 1024)).toFixed(2)} MB</p>
+                            </div>
+                            <button type="button" className="remove-file-btn" onClick={removeFile}>
+                              ✕
+                            </button>
+                          </div>
+                        )}
+                        
+                        {uploading && (
+                          <div className="upload-progress">
+                            <div className="progress-bar-fill" style={{ width: `${uploadProgress}%` }}></div>
+                            <span>{uploadProgress}%</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="form-actions">
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        onClick={resetResourceForm}
+                        disabled={uploading}
+                      >
+                        Clear Form
+                      </button>
+                      <button
+                        type="submit"
+                        className="btn-primary"
+                        disabled={uploading}
+                      >
+                        {uploading ? `Uploading... ${uploadProgress}%` : '📤 Add Resource'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          )}
+
           {/* Resources Tab */}
           {activeTab === 'resources' && (
             <div className="tab-content">
-              <h2>Manage Resources</h2>
+              <div className="resources-header">
+                <h2>Manage Resources</h2>
+                <button 
+                  className="btn-primary quick-add-btn"
+                  onClick={() => setActiveTab('add-resource')}
+                >
+                  ➕ Add New Resource
+                </button>
+              </div>
               <div className="resources-list">
                 {resources.filter((r) => r.status !== 'pending').length === 0 ? (
-                  <p className="empty-state">No approved resources yet</p>
+                  <div className="empty-state">
+                    <p>📚 No approved resources yet</p>
+                    <button 
+                      className="btn-primary"
+                      onClick={() => setActiveTab('add-resource')}
+                    >
+                      Add Your First Resource
+                    </button>
+                  </div>
                 ) : (
                   resources
                     .filter((r) => r.status !== 'pending')
@@ -247,11 +662,23 @@ export default function AdminDashboard() {
                         <div className="resource-meta">
                           <span>📍 {resource.location}</span>
                           <span>🏫 {resource.college}</span>
-                          <span>📅 {new Date(resource.createdAt?.toDate()).toLocaleDateString()}</span>
+                          <span>📅 {new Date(resource.createdAt?.toDate?.() || resource.createdAt).toLocaleDateString()}</span>
+                          <span>👁️ {resource.views || 0} views</span>
+                          <span>📥 {resource.downloads || 0} downloads</span>
                         </div>
                         <div className="resource-actions">
+                          {resource.fileUrl && (
+                            <a 
+                              href={resource.fileUrl} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="btn-small btn-secondary"
+                            >
+                              📥 Download
+                            </a>
+                          )}
                           <button className="btn-small btn-danger" onClick={() => handleReject(resource.id)}>
-                            Delete
+                            🗑️ Delete
                           </button>
                         </div>
                       </div>
