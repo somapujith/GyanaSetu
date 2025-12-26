@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 
 import VariableProximity from '../components/VariableProximity';
+import LightPillar from '../components/LightPillar';
 
 import { ROUTES } from '../constants/routes';
 import '../styles/landing.css';
@@ -53,6 +54,21 @@ export default function Home() {
 
   return (
     <div className="landing">
+      <div className="hero-bg">
+        <LightPillar
+          topColor="#6366f1"
+          bottomColor="#a855f7"
+          intensity={0.8}
+          rotationSpeed={0.3}
+          glowAmount={0.005}
+          pillarWidth={3.0}
+          pillarHeight={0.4}
+          noiseIntensity={0.5}
+          pillarRotation={0}
+          interactive={false}
+          mixBlendMode="screen"
+        />
+      </div>
       <div className="container">
 
 
