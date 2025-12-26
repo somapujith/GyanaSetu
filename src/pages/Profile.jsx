@@ -1,38 +1,121 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../store/authStore';
+import { useToastStore } from '../store/toastStore';
+import { uploadProfilePhoto } from '../services/storage';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db } from '../config/firebase';
 import { ROUTES } from '../constants/routes';
+import Loading from '../components/Loading';
 import './Profile.css';
 
 export default function Profile() {
   const navigate = useNavigate();
+  const { user, userProfile, fetchUserProfile } = useAuthStore();
+  const { showSuccess, showError } = useToastStore();
   const [profile, setProfile] = useState({
-    fullName: 'Ronald Richards',
-    email: 'RonaldRich@example.com',
-    phone: '(219) 555-0114',
-    location: 'California',
-    bio: 'Hi 👋, I\'m Ronald, a passionate UX designer with 10 of experience in creating intuitive and user-centered digital experiences. With a strong background in user research, information architecture, and interaction design, I am dedicated to crafting seamless and delightful user journeys.',
+    fullName: '',
+    email: '',
+    phone: '',
+    location: '',
+    bio: '',
     photo: null,
     photoPreview: null,
   });
+  const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [editingSection, setEditingSection] = useState(null);
+
+  // Load user profile data
+  useEffect(() => {
+    if (userProfile) {
+      setProfile({
+        fullName: userProfile.fullName || '',
+        email: userProfile.email || '',
+        phone: userProfile.phone || '',
+        location: userProfile.location || '',
+        bio: userProfile.bio || '',
+        photo: null,
+        photoPreview: userProfile.photoURL || null,
+      });
+    }
+  }, [userProfile]);
 
   const handleChange = e => {
     const { name, value } = e.target;
     setProfile(prev => ({ ...prev, [name]: value }));
   };
 
-  const handlePhotoChange = e => {
+  const handlePhotoChange = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setProfile(prev => ({ ...prev, photo: file, photoPreview: URL.createObjectURL(file) }));
+    if (!file) return;
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      showError('Image size must be less than 5MB');
+      return;
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      showError('Please upload an image file');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      // Upload to Firebase Storage
+      const photoURL = await uploadProfilePhoto(file, user.uid);
+      
+      // Update Firestore
+      await updateDoc(doc(db, 'users', user.uid), {
+        photoURL: photoURL,
+      });
+
+      // Update local state
+      setProfile(prev => ({ 
+        ...prev, 
+        photo: file, 
+        photoPreview: photoURL 
+      }));
+
+      // Refresh user profile
+      await fetchUserProfile(user.uid);
+      
+      showSuccess('Profile photo updated successfully!');
+    } catch (error) {
+      console.error('Error uploading photo:', error);
+      showError('Failed to upload photo. Please try again.');
+    } finally {
+      setUploading(false);
     }
   };
 
   const handleEditSection = section => setEditingSection(section);
   const handleCancelEdit = () => setEditingSection(null);
-  const handleSaveSection = () => {
-    // TODO: Save to backend
-    setEditingSection(null);
+  
+  const handleSaveSection = async () => {
+    setSaving(true);
+    try {
+      // Update Firestore
+      await updateDoc(doc(db, 'users', user.uid), {
+        fullName: profile.fullName,
+        phone: profile.phone,
+        location: profile.location,
+        bio: profile.bio,
+      });
+
+      // Refresh user profile
+      await fetchUserProfile(user.uid);
+      
+      setEditingSection(null);
+      showSuccess('Profile updated successfully!');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      showError('Failed to update profile. Please try again.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const completionPercentage = 40;
@@ -108,7 +191,9 @@ export default function Profile() {
               {/* Photo Upload Section */}
               <section className="profile-card photo-card">
                 <label htmlFor="photo-upload" className="photo-upload-area">
-                  {profile.photoPreview ? (
+                  {uploading ? (
+                    <Loading size="large" />
+                  ) : profile.photoPreview ? (
                     <img src={profile.photoPreview} alt="Profile" className="profile-photo-large" />
                   ) : (
                     <div className="profile-photo-placeholder-large">
@@ -121,11 +206,12 @@ export default function Profile() {
                     accept="image/*"
                     style={{ display: 'none' }}
                     onChange={handlePhotoChange}
+                    disabled={uploading}
                   />
                 </label>
                 <div className="photo-info">
                   <h3>Upload new photo</h3>
-                  <p>At least 800×800 px recommended.<br />JPG or PNG is allowed</p>
+                  <p>At least 800×800 px recommended.<br />JPG or PNG is allowed (max 5MB)</p>
                 </div>
               </section>
 
@@ -209,8 +295,10 @@ export default function Profile() {
                     <div className="bio-edit">
                       <textarea name="bio" value={profile.bio} onChange={handleChange} rows="6" className="bio-textarea"></textarea>
                       <div className="edit-actions">
-                        <button className="btn-cancel" onClick={handleCancelEdit}>Cancel</button>
-                        <button className="btn-save" onClick={handleSaveSection}>Save changes</button>
+                        <button className="btn-cancel" onClick={handleCancelEdit} disabled={saving}>Cancel</button>
+                        <button className="btn-save" onClick={handleSaveSection} disabled={saving}>
+                          {saving ? 'Saving...' : 'Save changes'}
+                        </button>
                       </div>
                     </div>
                   ) : (

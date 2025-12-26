@@ -1,15 +1,38 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../store/authStore';
+import { useResourceStore } from '../store/resourceStore';
+import { useToastStore } from '../store/toastStore';
 import '../styles/resource-card.css';
 
 const ResourceCard = ({ resource, onPreview }) => {
   const navigate = useNavigate();
+  const { user } = useAuthStore();
+  const { favorites, toggleFavorite } = useResourceStore();
+  const { showSuccess, showError } = useToastStore();
+  
+  const isFavorited = favorites.includes(resource.id);
 
   const handleViewDetails = () => {
     if (onPreview) {
       onPreview();
     } else {
       navigate(`/resource/${resource.id}`, { state: { resource } });
+    }
+  };
+
+  const handleToggleFavorite = async (e) => {
+    e.stopPropagation();
+    if (!user) {
+      showError('Please login to bookmark resources');
+      return;
+    }
+
+    try {
+      await toggleFavorite(resource.id, user.uid);
+      showSuccess(isFavorited ? 'Removed from favorites' : 'Added to favorites');
+    } catch (error) {
+      showError('Failed to update favorites');
     }
   };
 
@@ -42,6 +65,13 @@ const ResourceCard = ({ resource, onPreview }) => {
         <span className={`status-indicator ${resource.status}`}>
           {resource.status === 'available' ? '●' : '○'}
         </span>
+        <button 
+          className={`bookmark-btn ${isFavorited ? 'favorited' : ''}`} 
+          onClick={handleToggleFavorite}
+          title={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+        >
+          <ion-icon name={isFavorited ? 'bookmark' : 'bookmark-outline'}></ion-icon>
+        </button>
       </div>
 
       <div className="card-content">

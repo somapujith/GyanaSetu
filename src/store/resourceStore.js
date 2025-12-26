@@ -221,4 +221,53 @@ export const useResourceStore = create((set, get) => ({
       throw error;
     }
   },
+
+  // Toggle favorite
+  toggleFavorite: async (resourceId, userId) => {
+    try {
+      set({ error: null });
+      const favorites = get().favorites;
+      const isFavorited = favorites.includes(resourceId);
+
+      if (isFavorited) {
+        // Remove from favorites
+        await deleteDoc(doc(db, 'favorites', `${userId}_${resourceId}`));
+        set({ favorites: favorites.filter((id) => id !== resourceId) });
+      } else {
+        // Add to favorites
+        await addDoc(collection(db, 'favorites'), {
+          userId,
+          resourceId,
+          createdAt: serverTimestamp(),
+        });
+        set({ favorites: [...favorites, resourceId] });
+      }
+
+      // Update resource favorites count
+      const resourceRef = doc(db, 'resources', resourceId);
+      await updateDoc(resourceRef, {
+        favorites: increment(isFavorited ? -1 : 1),
+      });
+    } catch (error) {
+      set({ error: error.message });
+      throw error;
+    }
+  },
+
+  // Fetch user favorites
+  fetchFavorites: async (userId) => {
+    try {
+      set({ error: null, loading: true });
+      const q = query(collection(db, 'favorites'), where('userId', '==', userId));
+      const snapshot = await getDocs(q);
+      const favoriteIds = snapshot.docs.map((doc) => doc.data().resourceId);
+      set({ favorites: favoriteIds });
+      return favoriteIds;
+    } catch (error) {
+      set({ error: error.message });
+      throw error;
+    } finally {
+      set({ loading: false });
+    }
+  },
 }));

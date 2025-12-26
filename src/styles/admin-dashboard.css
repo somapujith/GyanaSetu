@@ -559,11 +559,97 @@
 
   .stat-card {
     flex-direction: column;
-    text-align: center;
+    text-center;
   }
 
   .resource-meta {
     flex-direction: column;
     gap: 0.5rem;
   }
+}
+
+/* Approval Tab Styles */
+.tab-description {
+  color: #666;
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+}
+
+.pending-item {
+  border-left: 4px solid #f59e0b !important;
+  background: #fffbeb;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.badge-warning {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.resource-details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin: 1rem 0;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+}
+
+.detail-item {
+  font-size: 0.9rem;
+  color: #444;
+}
+
+.detail-item strong {
+  color: #667eea;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.file-info-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #f3f4f6;
+  border-radius: 8px;
+  margin: 0.5rem 0;
+}
+
+.file-info-badge ion-icon {
+  font-size: 20px;
+  color: #667eea;
+}
+
+.btn-success {
+  background: #10b981 !important;
+  color: white !important;
+}
+
+.btn-success:hover {
+  background: #059669 !important;
+}
+
+.btn-secondary {
+  background: #6b7280 !important;
+  color: white !important;
+}
+
+.btn-secondary:hover {
+  background: #4b5563 !important;
+}
+
+.empty-subtitle {
+  font-size: 0.9rem;
+  color: #999;
+  margin-top: 0.5rem;
 }

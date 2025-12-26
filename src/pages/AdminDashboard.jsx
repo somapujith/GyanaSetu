@@ -2,16 +2,19 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useResourceStore } from '../store/resourceStore';
+import { useToastStore } from '../store/toastStore';
 import { ROUTES } from '../constants/routes';
 import '../styles/admin-dashboard.css';
 
 export default function AdminDashboard() {
   const { user, userProfile, logout } = useAuthStore();
-  const { resources } = useResourceStore();
+  const { resources, updateResource, deleteResource } = useResourceStore();
+  const { showSuccess, showError } = useToastStore();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
   const [stats, setStats] = useState({
     totalResources: 0,
+    pendingApprovals: 0,
     totalUsers: 0,
     totalRequests: 0,
     activeToday: 0,
@@ -29,14 +32,38 @@ export default function AdminDashboard() {
       (acc, res) => acc + (res.requests?.length || 0),
       0
     );
+    const pendingApprovals = resources.filter(
+      (res) => res.status === 'pending'
+    ).length;
 
     setStats({
-      totalResources: resources.length,
+      totalResources: resources.filter((r) => r.status !== 'pending').length,
+      pendingApprovals: pendingApprovals,
       totalUsers: 0, // Would fetch from backend
       totalRequests: totalRequests,
       activeToday: 0, // Would track from backend
     });
   }, [resources]);
+
+  const handleApprove = async (resourceId) => {
+    try {
+      await updateResource(resourceId, { status: 'available' });
+      showSuccess('Resource approved successfully!');
+    } catch (error) {
+      showError('Failed to approve resource');
+      console.error(error);
+    }
+  };
+
+  const handleReject = async (resourceId) => {
+    try {
+      await deleteResource(resourceId);
+      showSuccess('Resource rejected and deleted');
+    } catch (error) {
+      showError('Failed to reject resource');
+      console.error(error);
+    }
+  };
 
   const handleLogout = async () => {
     await logout();
@@ -86,6 +113,12 @@ export default function AdminDashboard() {
               📚 Resources
             </button>
             <button
+              className={`nav-item ${activeTab === 'approvals' ? 'active' : ''}`}
+              onClick={() => setActiveTab('approvals')}
+            >
+              ✅ Pending Approvals
+            </button>
+            <button
               className={`nav-item ${activeTab === 'users' ? 'active' : ''}`}
               onClick={() => setActiveTab('users')}
             >
@@ -121,6 +154,16 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
+                <div className="stat-card" style={{ border: '2px solid #f59e0b' }}>
+                  <div className="stat-icon">⏳</div>
+                  <div className="stat-info">
+                    <h3>Pending Approvals</h3>
+                    <p className="stat-value" style={{ color: '#f59e0b' }}>
+                      {stats.pendingApprovals}
+                    </p>
+                  </div>
+                </div>
+
                 <div className="stat-card">
                   <div className="stat-icon">👥</div>
                   <div className="stat-info">
@@ -134,14 +177,6 @@ export default function AdminDashboard() {
                   <div className="stat-info">
                     <h3>Total Requests</h3>
                     <p className="stat-value">{stats.totalRequests}</p>
-                  </div>
-                </div>
-
-                <div className="stat-card">
-                  <div className="stat-icon">⚡</div>
-                  <div className="stat-info">
-                    <h3>Active Today</h3>
-                    <p className="stat-value">{stats.activeToday}</p>
                   </div>
                 </div>
               </div>
@@ -190,27 +225,130 @@ export default function AdminDashboard() {
             <div className="tab-content">
               <h2>Manage Resources</h2>
               <div className="resources-list">
-                {resources.length === 0 ? (
-                  <p className="empty-state">No resources yet</p>
+                {resources.filter((r) => r.status !== 'pending').length === 0 ? (
+                  <p className="empty-state">No approved resources yet</p>
                 ) : (
-                  resources.map((resource) => (
-                    <div key={resource.id} className="resource-item">
-                      <div className="resource-header">
-                        <h4>{resource.title}</h4>
-                        <span className="resource-category">{resource.category}</span>
+                  resources
+                    .filter((r) => r.status !== 'pending')
+                    .map((resource) => (
+                      <div key={resource.id} className="resource-item">
+                        <div className="resource-header">
+                          <h4>{resource.title}</h4>
+                          <span className="resource-category">{resource.category}</span>
+                        </div>
+                        <p className="resource-description">{resource.description}</p>
+                        <div className="resource-meta">
+                          <span>📍 {resource.location}</span>
+                          <span>🏫 {resource.college}</span>
+                          <span>📅 {new Date(resource.createdAt?.toDate()).toLocaleDateString()}</span>
+                        </div>
+                        <div className="resource-actions">
+                          <button className="btn-small btn-danger" onClick={() => handleReject(resource.id)}>
+                            Delete
+                          </button>
+                        </div>
                       </div>
-                      <p className="resource-description">{resource.description}</p>
-                      <div className="resource-meta">
-                        <span>📍 {resource.location}</span>
-                        <span>🏫 {resource.college}</span>
-                        <span>📅 {new Date(resource.createdAt).toLocaleDateString()}</span>
+                    ))
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Approvals Tab */}
+          {activeTab === 'approvals' && (
+            <div className="tab-content">
+              <h2>Pending Approvals</h2>
+              <p className="tab-description">Review and approve resources submitted by students</p>
+              
+              <div className="resources-list">
+                {resources.filter((r) => r.status === 'pending').length === 0 ? (
+                  <div className="empty-state">
+                    <p>✨ No pending approvals</p>
+                    <p className="empty-subtitle">All resources have been reviewed</p>
+                  </div>
+                ) : (
+                  resources
+                    .filter((r) => r.status === 'pending')
+                    .map((resource) => (
+                      <div key={resource.id} className="resource-item pending-item">
+                        <div className="resource-header">
+                          <h4>{resource.title}</h4>
+                          <span className="badge badge-warning">Pending Review</span>
+                        </div>
+                        <p className="resource-description">{resource.description}</p>
+                        
+                        <div className="resource-details-grid">
+                          <div className="detail-item">
+                            <strong>Category:</strong> {resource.category}
+                          </div>
+                          <div className="detail-item">
+                            <strong>Condition:</strong> {resource.condition}
+                          </div>
+                          <div className="detail-item">
+                            <strong>College:</strong> {resource.college}
+                          </div>
+                          <div className="detail-item">
+                            <strong>Department:</strong> {resource.department}
+                          </div>
+                          <div className="detail-item">
+                            <strong>Submitted by:</strong> {resource.userName}
+                          </div>
+                          <div className="detail-item">
+                            <strong>Email:</strong> {resource.userEmail}
+                          </div>
+                        </div>
+
+                        <div className="resource-meta">
+                          <span>📍 {resource.location}</span>
+                          <span>📅 Available from: {new Date(resource.availableFrom).toLocaleDateString()}</span>
+                          {resource.availableTo && (
+                            <span>📅 Until: {new Date(resource.availableTo).toLocaleDateString()}</span>
+                          )}
+                        </div>
+
+                        {resource.fileUrl && (
+                          <div className="file-info-badge">
+                            <ion-icon name="document-outline"></ion-icon>
+                            <span>{resource.fileName}</span>
+                          </div>
+                        )}
+
+                        <div className="resource-actions">
+                          <button 
+                            className="btn-small btn-success" 
+                            onClick={() => handleApprove(resource.id)}
+                          >
+                            ✅ Approve
+                          </button>
+                          <button 
+                            className="btn-small btn-danger" 
+                            onClick={() => handleReject(resource.id)}
+                          >
+                            ❌ Reject
+                          </button>
+                          {resource.image && (
+                            <a 
+                              href={resource.image} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="btn-small btn-secondary"
+                            >
+                              🖼️ View Image
+                            </a>
+                          )}
+                          {resource.fileUrl && (
+                            <a 
+                              href={resource.fileUrl} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="btn-small btn-secondary"
+                            >
+                              📥 Download File
+                            </a>
+                          )}
+                        </div>
                       </div>
-                      <div className="resource-actions">
-                        <button className="btn-small">Edit</button>
-                        <button className="btn-small btn-danger">Delete</button>
-                      </div>
-                    </div>
-                  ))
+                    ))
                 )}
               </div>
             </div>

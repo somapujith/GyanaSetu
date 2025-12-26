@@ -6,15 +6,19 @@ import ResourceCard from '../components/ResourceCard';
 import ResourcePreviewModal from '../components/ResourcePreviewModal';
 import { ROUTES } from '../constants/routes';
 import { CATEGORY_LABELS, FILTER_ALL, RESOURCE_CATEGORIES } from '../constants/resources';
+import { DEPARTMENTS } from '../constants/departments';
 import '../styles/student-dashboard.css';
 
 export default function BrowseResources() {
   const { user, userProfile, logout } = useAuthStore();
-  const { resources, fetchResources, searchResources } = useResourceStore();
+  const { resources, fetchResources, searchResources, fetchFavorites } = useResourceStore();
   const navigate = useNavigate();
 
   const [selectedCategory, setSelectedCategory] = useState(FILTER_ALL);
   const [selectedCollege, setSelectedCollege] = useState(FILTER_ALL);
+  const [selectedDepartment, setSelectedDepartment] = useState(FILTER_ALL);
+  const [selectedCondition, setSelectedCondition] = useState(FILTER_ALL);
+  const [sortBy, setSortBy] = useState('newest');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedResource, setSelectedResource] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -32,6 +36,10 @@ export default function BrowseResources() {
     navigate(ROUTES.STUDENT_DASHBOARD);
   };
 
+  const handleGoToFavorites = () => {
+    navigate(ROUTES.MY_FAVORITES);
+  };
+
   // Initialize with user's college
   useEffect(() => {
     if (userProfile?.college) {
@@ -39,7 +47,7 @@ export default function BrowseResources() {
     }
   }, [userProfile?.college]);
 
-  // Fetch resources when filters change
+  // Fetch resources and favorites when filters change
   useEffect(() => {
     const loadResources = async () => {
       setIsLoading(true);
@@ -48,6 +56,10 @@ export default function BrowseResources() {
           category: selectedCategory === FILTER_ALL ? null : selectedCategory,
           college: selectedCollege === FILTER_ALL ? null : selectedCollege,
         });
+        // Load user's favorites
+        if (user) {
+          await fetchFavorites(user.uid);
+        }
       } catch (error) {
         console.error('Error fetching resources:', error);
       } finally {
@@ -55,22 +67,7 @@ export default function BrowseResources() {
       }
     };
     loadResources();
-  }, [selectedCategory, selectedCollege, fetchResources]);
-
-  // Handle search
-  const handleSearch = (e) => {
-    const term = e.target.value;
-    setSearchTerm(term);
-    
-    if (term.trim()) {
-      searchResources(term);
-    } else {
-      fetchResources({
-        category: selectedCategory === FILTER_ALL ? null : selectedCategory,
-        college: selectedCollege === FILTER_ALL ? null : selectedCollege,
-      });
-    }
-  };
+  }, [selectedCategory, selectedCollege, fetchResources, fetchFavorites, user]);
 
   // Handle logout
   const handleLogout = async () => {
@@ -86,11 +83,76 @@ export default function BrowseResources() {
   }, [resources, userProfile?.college]);
 
   const categories = RESOURCE_CATEGORIES;
+  const conditions = [FILTER_ALL, 'excellent', 'good', 'fair', 'used'];
+
+  // Filtered and sorted resources
+  const filteredResources = useMemo(() => {
+    let filtered = [...resources];
+
+    // Apply search
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(
+        (r) =>
+          r.title?.toLowerCase().includes(term) ||
+          r.description?.toLowerCase().includes(term) ||
+          r.college?.toLowerCase().includes(term) ||
+          r.department?.toLowerCase().includes(term) ||
+          r.userName?.toLowerCase().includes(term)
+      );
+    }
+
+    // Apply category filter
+    if (selectedCategory !== FILTER_ALL) {
+      filtered = filtered.filter((r) => r.category === selectedCategory);
+    }
+
+    // Apply college filter
+    if (selectedCollege !== FILTER_ALL) {
+      filtered = filtered.filter((r) => r.college === selectedCollege);
+    }
+
+    // Apply department filter
+    if (selectedDepartment !== FILTER_ALL) {
+      filtered = filtered.filter((r) => r.department === selectedDepartment);
+    }
+
+    // Apply condition filter
+    if (selectedCondition !== FILTER_ALL) {
+      filtered = filtered.filter((r) => r.condition === selectedCondition);
+    }
+
+    // Apply sorting
+    switch (sortBy) {
+      case 'newest':
+        filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        break;
+      case 'oldest':
+        filtered.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+        break;
+      case 'title-asc':
+        filtered.sort((a, b) => a.title.localeCompare(b.title));
+        break;
+      case 'title-desc':
+        filtered.sort((a, b) => b.title.localeCompare(a.title));
+        break;
+      case 'college':
+        filtered.sort((a, b) => a.college.localeCompare(b.college));
+        break;
+      default:
+        break;
+    }
+
+    return filtered;
+  }, [resources, searchTerm, selectedCategory, selectedCollege, selectedDepartment, selectedCondition, sortBy]);
 
   // Reset filters
   const resetFilters = () => {
     setSelectedCategory(FILTER_ALL);
     setSelectedCollege(userProfile?.college || FILTER_ALL);
+    setSelectedDepartment(FILTER_ALL);
+    setSelectedCondition(FILTER_ALL);
+    setSortBy('newest');
     setSearchTerm('');
   };
 
@@ -115,6 +177,9 @@ export default function BrowseResources() {
           </button>
           <button className="nav-link-btn active" disabled>
             Browse
+          </button>
+          <button className="nav-link-btn" onClick={handleGoToFavorites} title="Go to favorites">
+            Favorites
           </button>
           <button className="nav-link-btn" onClick={handleGoToRequests} title="Go to requests">
             Requests
@@ -151,11 +216,22 @@ export default function BrowseResources() {
             <h4>Search</h4>
             <input
               type="text"
-              placeholder="Search by title, college..."
+              placeholder="Search by title, description, college..."
               value={searchTerm}
-              onChange={handleSearch}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input"
             />
+          </div>
+
+          <div className="filter-section">
+            <h4>Sort By</h4>
+            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="filter-select">
+              <option value="newest">Newest First</option>
+              <option value="oldest">Oldest First</option>
+              <option value="title-asc">Title (A-Z)</option>
+              <option value="title-desc">Title (Z-A)</option>
+              <option value="college">College Name</option>
+            </select>
           </div>
 
           <div className="filter-section">
@@ -188,6 +264,37 @@ export default function BrowseResources() {
             </select>
           </div>
 
+          <div className="filter-section">
+            <h4>Department</h4>
+            <select
+              value={selectedDepartment}
+              onChange={(e) => setSelectedDepartment(e.target.value)}
+              className="filter-select"
+            >
+              <option value={FILTER_ALL}>All Departments</option>
+              {DEPARTMENTS.map((dept) => (
+                <option key={dept} value={dept}>
+                  {dept}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="filter-section">
+            <h4>Condition</h4>
+            <select
+              value={selectedCondition}
+              onChange={(e) => setSelectedCondition(e.target.value)}
+              className="filter-select"
+            >
+              {conditions.map((cond) => (
+                <option key={cond} value={cond}>
+                  {cond === FILTER_ALL ? 'All Conditions' : cond.charAt(0).toUpperCase() + cond.slice(1)}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <button className="btn-secondary" onClick={resetFilters} style={{ width: '100%' }}>
             Reset Filters
           </button>
@@ -195,8 +302,12 @@ export default function BrowseResources() {
           {/* Stats */}
           <div className="sidebar-stats">
             <div className="stat-box">
+              <span className="stat-number">{filteredResources.length}</span>
+              <span className="stat-label">Filtered Results</span>
+            </div>
+            <div className="stat-box">
               <span className="stat-number">{resources.length}</span>
-              <span className="stat-label">Resources</span>
+              <span className="stat-label">Total Resources</span>
             </div>
           </div>
         </aside>
@@ -205,14 +316,14 @@ export default function BrowseResources() {
         <main className="main-content">
           <div className="resources-section">
             <h2>
-              Available Resources ({isLoading ? '...' : resources.length})
+              Available Resources ({isLoading ? '...' : filteredResources.length})
             </h2>
 
-            {resources.length === 0 && !isLoading ? (
+            {filteredResources.length === 0 && !isLoading ? (
               <div className="empty-state">
                 <p>📚 No resources found</p>
                 <p className="empty-subtitle">
-                  {searchTerm 
+                  {searchTerm || selectedCategory !== FILTER_ALL || selectedCollege !== FILTER_ALL 
                     ? 'Try different search terms or adjust filters'
                     : 'Try adjusting your filters or be the first to share a resource!'}
                 </p>
@@ -229,7 +340,7 @@ export default function BrowseResources() {
               </div>
             ) : (
               <div className="resources-grid">
-                {resources.map((resource) => (
+                {filteredResources.map((resource) => (
                   <ResourceCard
                     key={resource.id}
                     resource={resource}
@@ -251,5 +362,7 @@ export default function BrowseResources() {
         />
       )}
     </div>
+  );
+}    </div>
   );
 }

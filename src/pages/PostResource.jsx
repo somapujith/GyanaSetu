@@ -2,16 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useResourceStore } from '../store/resourceStore';
+import useToastStore from '../store/toastStore';
+import { uploadResourceFile, formatFileSize, getFileType } from '../services/storage';
 import { ROUTES } from '../constants/routes';
 import { CATEGORY_LABELS, RESOURCE_CATEGORIES } from '../constants/resources';
 import { COLLEGES } from '../constants/colleges';
 import { DEPARTMENTS } from '../constants/departments';
+import Loading from '../components/Loading';
 import '../styles/form.css';
 
 const PostResource = () => {
   const navigate = useNavigate();
   const { user, userProfile } = useAuthStore();
   const { createResource, loading, error } = useResourceStore();
+  const { success, error: showError } = useToastStore();
 
   const [formData, setFormData] = useState({
     title: '',
@@ -23,11 +27,15 @@ const PostResource = () => {
     location: '',
     availableFrom: '',
     availableTo: '',
-    image: '',
     contactPreference: 'email',
     terms: '',
+    tags: '',
   });
 
+  const [file, setFile] = useState(null);
+  const [filePreview, setFilePreview] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploading, setUploading] = useState(false);
   const [errors, setErrors] = useState({});
   const [charCount, setCharCount] = useState({ title: 0, description: 0 });
 
@@ -75,6 +83,90 @@ const PostResource = () => {
       newErrors.description = 'Description is required';
     } else if (formData.description.length < 20) {
       newErrors.description = 'Please provide a more detailed description (min 20 characters)';
+    }
+    
+    // College validation
+    if (!formData.college) {
+      newErrors.college = 'Please select your college';
+    }
+    
+    // Location validation
+    if (!formData.location.trim()) {
+      newErrors.location = 'Pickup location is required';
+    } else if (formData.location.length < 10) {
+      newErrors.location = 'Please provide a more specific location';
+    }
+    
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files[0];
+    if (!selectedFile) return;
+
+    // Validate file size (max 50MB)
+    const maxSize = 50 * 1024 * 1024;
+    if (selectedFile.size > maxSize) {
+      showError('File size must be less than 50MB');
+      return;
+    }
+
+    // Validate file type
+    const allowedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-powerpoint',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      'video/mp4',
+      'image/jpeg',
+      'image/png',
+    ];
+    
+    if (!allowedTypes.includes(selectedFile.type)) {
+      showError('Invalid file type. Allowed: PDF, DOC, DOCX, PPT, PPTX, MP4, JPG, PNG');
+      return;
+    }
+
+    setFile(selectedFile);
+    
+    // Create preview for images
+    if (selectedFile.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFilePreview(reader.result);
+      };
+      reader.readAsDataURL(selectedFile);
+    } else {
+      setFilePreview(null);
+    }
+  };
+
+  const removeFile = () => {
+    setFile(null);
+    setFilePreview(null);
+    setUploadProgress(0);
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    
+    // Title validation
+    if (!formData.title.trim()) {
+      newErrors.title = 'Title is required';
+    } else if (formData.title.length < 5) {
+      newErrors.title = 'Title must be at least 5 characters';
+    } else if (formData.title.length > 100) {
+      newErrors.title = 'Title must be less than 100 characters';
+    }
+    
+    // Description validation
+    if (!formData.description.trim()) {
+      newErrors.description = 'Description is required';
+    } else if (formData.description.length < 20) {
+      newErrors.description = 'Please provide a more detailed description (min 20 characters)';
+    }
+
+    // File validation
+    if (!file) {
+      newErrors.file = 'Please upload a resource file';
     }
     
     // College validation
@@ -139,7 +231,14 @@ const PostResource = () => {
       return;
     }
 
+    setUploading(true);
+    
     try {
+      // Upload file to Firebase Storage first
+      const fileUrl = await uploadResourceFile(file, user.uid, (progress) => {
+        setUploadProgress(progress);
+      });
+      
       const resourceData = {
         title: formData.title.trim(),
         description: formData.description.trim(),
@@ -153,6 +252,10 @@ const PostResource = () => {
         image: formData.image.trim() || null,
         contactPreference: formData.contactPreference,
         terms: formData.terms.trim() || null,
+        fileUrl: fileUrl, // Add uploaded file URL
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: getFileType(file.name),
         userId: user.uid,
         userName: userProfile.fullName,
         userEmail: userProfile.email,
@@ -160,9 +263,14 @@ const PostResource = () => {
       };
 
       await createResource(resourceData);
+      showSuccess('Resource posted successfully!');
       navigate(ROUTES.STUDENT_DASHBOARD);
     } catch (err) {
       console.error(err);
+      showError(err.message || 'Failed to post resource. Please try again.');
+    } finally {
+      setUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -230,6 +338,55 @@ const PostResource = () => {
                 <span className="char-count">{charCount.description} characters</span>
                 {errors.description && <span className="error">{errors.description}</span>}
               </div>
+            </div>
+
+            {/* File Upload Section */}
+            <div className="form-group">
+              <label>Upload Resource File <span className="required">*</span></label>
+              <div className="file-upload-area">
+                {!file ? (
+                  <label htmlFor="file-input" className="file-upload-label">
+                    <ion-icon name="cloud-upload-outline"></ion-icon>
+                    <p>Click to upload or drag and drop</p>
+                    <span className="file-upload-hint">
+                      PDF, DOC, DOCX, PPT, PPTX, MP4, JPG, PNG (max 50MB)
+                    </span>
+                  </label>
+                ) : (
+                  <div className="file-preview">
+                    <div className="file-info">
+                      {filePreview ? (
+                        <img src={filePreview} alt="Preview" className="file-thumbnail" />
+                      ) : (
+                        <ion-icon name="document-outline" className="file-icon"></ion-icon>
+                      )}
+                      <div className="file-details">
+                        <p className="file-name">{file.name}</p>
+                        <p className="file-size">{formatFileSize(file.size)}</p>
+                      </div>
+                    </div>
+                    <button type="button" onClick={removeFile} className="remove-file-btn">
+                      <ion-icon name="close-circle"></ion-icon>
+                    </button>
+                  </div>
+                )}
+                <input
+                  id="file-input"
+                  type="file"
+                  onChange={handleFileChange}
+                  accept=".pdf,.doc,.docx,.ppt,.pptx,.mp4,.jpg,.jpeg,.png"
+                  style={{ display: 'none' }}
+                />
+              </div>
+              {errors.file && <span className="error">{errors.file}</span>}
+              {uploadProgress > 0 && uploadProgress < 100 && (
+                <div className="upload-progress">
+                  <div className="progress-bar">
+                    <div className="progress-fill" style={{ width: `${uploadProgress}%` }}></div>
+                  </div>
+                  <span className="progress-text">{uploadProgress}%</span>
+                </div>
+              )}
             </div>
 
             <div className="form-row">
@@ -404,20 +561,22 @@ const PostResource = () => {
           </div>
 
           <div className="form-actions">
-            <button type="submit" className="btn-primary btn-large" disabled={loading}>
+            <button type="submit" className="btn-primary btn-large" disabled={uploading || loading}>
               <ion-icon name="cloud-upload-outline"></ion-icon>
-              {loading ? 'Posting Resource...' : 'Post Resource'}
+              {uploading ? `Uploading... ${uploadProgress}%` : loading ? 'Posting Resource...' : 'Post Resource'}
             </button>
             <button 
               type="button" 
               className="btn-secondary" 
               onClick={() => navigate(ROUTES.STUDENT_DASHBOARD)}
+              disabled={uploading}
             >
               Cancel
             </button>
           </div>
         </form>
       </div>
+      {uploading && <Loading size="large" fullscreen />}
     </div>
   );
 };

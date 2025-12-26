@@ -6,6 +6,7 @@ export const ROUTES = {
   STUDENT_DASHBOARD: '/student-dashboard',
   BROWSE_RESOURCES: '/browse',
   MY_REQUESTS: '/requests',
+  MY_FAVORITES: '/favorites',
 
   ADMIN_LOGIN: '/admin-login',
   ADMIN_DASHBOARD: '/admin-dashboard',
