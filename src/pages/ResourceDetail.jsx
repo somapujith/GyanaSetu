@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useResourceStore } from '../store/resourceStore';
@@ -12,11 +12,18 @@ const ResourceDetail = () => {
   const navigate = useNavigate();
   const resource = location.state?.resource;
   const { user, userProfile, logout } = useAuthStore();
-  const { requestResource, loading, favorites } = useResourceStore();
+  const { requestResource, loading, favorites, incrementViews, incrementDownloads } = useResourceStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const [showRequestForm, setShowRequestForm] = useState(false);
   const [requestMessage, setRequestMessage] = useState('');
+
+  // Track view when component mounts
+  useEffect(() => {
+    if (resource?.id) {
+      incrementViews(resource.id);
+    }
+  }, [resource?.id, incrementViews]);
 
   // Navigation functions
   const handleGoHome = () => navigate(ROUTES.HOME);

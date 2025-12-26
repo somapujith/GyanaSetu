@@ -311,4 +311,30 @@ export const useResourceStore = create((set, get) => ({
       set({ loading: false });
     }
   },
+
+  // Increment view count
+  incrementViews: async (resourceId) => {
+    try {
+      const resourceRef = doc(db, 'resources', resourceId);
+      await updateDoc(resourceRef, {
+        views: increment(1),
+      });
+    } catch (error) {
+      console.error('Failed to increment views:', error);
+      // Don't throw - views are non-critical
+    }
+  },
+
+  // Increment download count
+  incrementDownloads: async (resourceId) => {
+    try {
+      const resourceRef = doc(db, 'resources', resourceId);
+      await updateDoc(resourceRef, {
+        downloads: increment(1),
+      });
+    } catch (error) {
+      console.error('Failed to increment downloads:', error);
+      // Don't throw - downloads are non-critical
+    }
+  },
 }));

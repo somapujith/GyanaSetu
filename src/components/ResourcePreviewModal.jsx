@@ -17,18 +17,23 @@ const CATEGORY_ICONS = {
 export default function ResourcePreviewModal({ resource, onClose }) {
   const navigate = useNavigate();
   const { user, userProfile } = useAuthStore();
-  const { requestResource, loading } = useResourceStore();
+  const { requestResource, loading, incrementDownloads } = useResourceStore();
   const [requestMessage, setRequestMessage] = useState('');
   const [showRequestForm, setShowRequestForm] = useState(false);
   const [requestSent, setRequestSent] = useState(false);
 
   if (!resource) return null;
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (!user) {
       onClose();
       navigate(ROUTES.STUDENT_LOGIN);
       return;
+    }
+
+    // Track download
+    if (resource.id) {
+      await incrementDownloads(resource.id);
     }
 
     // If resource has a downloadable file/link

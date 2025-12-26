@@ -2,6 +2,25 @@
 
 A web application that enables students across Hyderabad colleges to share and borrow resources like books, notes, lab equipment, and study materials.
 
+## ⚠️ IMPORTANT: Environment Setup Required
+
+Before running this project, you **MUST** configure your Firebase credentials:
+
+```bash
+# 1. Copy the example environment file
+cp .env.example .env
+
+# 2. Fill in ALL required variables in .env:
+VITE_FIREBASE_API_KEY=your_actual_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
+```
+
+> 🚨 **The app will NOT work without these credentials!** Authentication and database features will fail silently.
+
 ## Features
 
 - **User Authentication**: Secure registration and login using Firebase

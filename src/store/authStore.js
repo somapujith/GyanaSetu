@@ -20,17 +20,28 @@ export const useAuthStore = create((set) => ({
   // Initialize auth state
   initAuth: () => {
     onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        // Fetch user profile from Firestore
-        const docRef = doc(db, 'users', user.uid);
-        const docSnap = await getDoc(docRef);
-        set({
-          user,
-          userProfile: docSnap.exists() ? docSnap.data() : null,
-          loading: false,
+      try {
+        if (user) {
+          // Fetch user profile from Firestore
+          const docRef = doc(db, 'users', user.uid);
+          const docSnap = await getDoc(docRef);
+          set({
+            user,
+            userProfile: docSnap.exists() ? docSnap.data() : null,
+            loading: false,
+            error: null,
+          });
+        } else {
+          set({ user: null, userProfile: null, loading: false, error: null });
+        }
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+        set({ 
+          user: null, 
+          userProfile: null, 
+          loading: false, 
+          error: 'Failed to load user profile. Please check your connection.' 
         });
-      } else {
-        set({ user: null, userProfile: null, loading: false });
       }
     });
   },

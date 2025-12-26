@@ -91,10 +91,18 @@ const ResourceCard = ({ resource, onPreview }) => {
             <ion-icon name="school-outline"></ion-icon>
             <span className="value">{resource.college}</span>
           </div>
-          <div className="meta-item">
-            <ion-icon name="location-outline"></ion-icon>
-            <span className="value">{resource.location}</span>
-          </div>
+          {resource.views > 0 && (
+            <div className="meta-item stats">
+              <ion-icon name="eye-outline"></ion-icon>
+              <span className="value">{resource.views}</span>
+            </div>
+          )}
+          {resource.downloads > 0 && (
+            <div className="meta-item stats">
+              <ion-icon name="download-outline"></ion-icon>
+              <span className="value">{resource.downloads}</span>
+            </div>
+          )}
         </div>
 
         <div className="card-footer">
