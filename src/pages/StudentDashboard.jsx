@@ -11,7 +11,7 @@ import '../styles/student-dashboard.css';
 
 export default function StudentDashboard() {
   const { user, userProfile, logout } = useAuthStore();
-  const { resources, fetchResources, searchResources } = useResourceStore();
+  const { resources, fetchResources, searchResources, fetchFavorites } = useResourceStore();
   const navigate = useNavigate();
 
   const [selectedCategory, setSelectedCategory] = useState(FILTER_ALL);
@@ -38,7 +38,11 @@ export default function StudentDashboard() {
       category: selectedCategory === FILTER_ALL ? null : selectedCategory,
       college: selectedCollege === FILTER_ALL ? null : selectedCollege,
     });
-  }, [selectedCategory, selectedCollege, fetchResources]);
+    // Load user favorites
+    if (user) {
+      fetchFavorites(user.uid);
+    }
+  }, [selectedCategory, selectedCollege, fetchResources, fetchFavorites, user]);
 
   const handleSearch = (e) => {
     const term = e.target.value;

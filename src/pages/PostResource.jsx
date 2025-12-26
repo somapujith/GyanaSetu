@@ -66,37 +66,6 @@ const PostResource = () => {
     }
   };
 
-  const validateForm = () => {
-    const newErrors = {};
-    
-    // Title validation
-    if (!formData.title.trim()) {
-      newErrors.title = 'Title is required';
-    } else if (formData.title.length < 5) {
-      newErrors.title = 'Title must be at least 5 characters';
-    } else if (formData.title.length > 100) {
-      newErrors.title = 'Title must be less than 100 characters';
-    }
-    
-    // Description validation
-    if (!formData.description.trim()) {
-      newErrors.description = 'Description is required';
-    } else if (formData.description.length < 20) {
-      newErrors.description = 'Please provide a more detailed description (min 20 characters)';
-    }
-    
-    // College validation
-    if (!formData.college) {
-      newErrors.college = 'Please select your college';
-    }
-    
-    // Location validation
-    if (!formData.location.trim()) {
-      newErrors.location = 'Pickup location is required';
-    } else if (formData.location.length < 10) {
-      newErrors.location = 'Please provide a more specific location';
-    }
-    
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     if (!selectedFile) return;
