@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-import Silk from '../components/Silk';
 import { ROUTES } from '../constants/routes';
 import '../styles/auth.css';
 

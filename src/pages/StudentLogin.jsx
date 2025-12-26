@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-import Silk from '../components/Silk';
 import { ROUTES } from '../constants/routes';
 import '../styles/auth.css';
+
 
 export default function StudentLogin() {
   const [email, setEmail] = useState('');
@@ -30,15 +30,13 @@ export default function StudentLogin() {
 
   return (
     <div className="auth-page">
-      <div className="auth-background">
-        <Silk speed={5} scale={1} color="#7B7481" noiseIntensity={1.5} rotation={0} />
-      </div>
+
       <div className="auth-container">
-      <div className="auth-card">
-        <div className="auth-header">
-          <h1>Student Login</h1>
-          <p className="auth-subtitle">Access your resources and connect with peers</p>
-        </div>
+        <div className="auth-card">
+          <div className="auth-header">
+            <h1>Student Login</h1>
+            <p className="auth-subtitle">Access your resources and connect with peers</p>
+          </div>
 
         {error && <div className="error-message">{error}</div>}
 

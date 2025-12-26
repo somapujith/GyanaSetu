@@ -1,8 +1,9 @@
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-import Threads from '../components/Threads';
+
 import VariableProximity from '../components/VariableProximity';
+
 import { ROUTES } from '../constants/routes';
 import '../styles/landing.css';
 import Counter from '../components/Counter';
@@ -11,6 +12,13 @@ export default function Home() {
   const navigate = useNavigate();
   const { user, userProfile } = useAuthStore();
   const heroContainerRef = useRef(null);
+
+  useEffect(() => {
+    document.body.classList.add('skip-loader');
+    return () => document.body.classList.remove('skip-loader');
+  }, []);
+
+
 
   const handleBrowse = () => {
     if (user) {
@@ -42,19 +50,12 @@ export default function Home() {
     .map((s) => s[0]?.toUpperCase() || '')
     .join('');
 
+
   return (
     <div className="landing">
-      {/* Threads backdrop */}
-      <Threads
-        className="threads-backdrop"
-        color={[1, 1, 1]}
-        amplitude={1}
-        distance={0}
-        enableMouseInteraction={true}
-      />
-
-      {/* Content */}
       <div className="container">
+
+
         <nav className="nav">
           <a href={ROUTES.HOME} className="logo">
             <span className="brand-mark">📚</span>
