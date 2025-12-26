@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import {
   collection,
   addDoc,
+  setDoc,
   getDocs,
   getDoc,
   query,
@@ -228,14 +229,16 @@ export const useResourceStore = create((set, get) => ({
       set({ error: null });
       const favorites = get().favorites;
       const isFavorited = favorites.includes(resourceId);
+      const favoriteDocId = `${userId}_${resourceId}`;
 
       if (isFavorited) {
         // Remove from favorites
-        await deleteDoc(doc(db, 'favorites', `${userId}_${resourceId}`));
+        await deleteDoc(doc(db, 'favorites', favoriteDocId));
         set({ favorites: favorites.filter((id) => id !== resourceId) });
       } else {
-        // Add to favorites
-        await addDoc(collection(db, 'favorites'), {
+        // Add to favorites with specific ID
+        const favoriteRef = doc(db, 'favorites', favoriteDocId);
+        await setDoc(favoriteRef, {
           userId,
           resourceId,
           createdAt: serverTimestamp(),
