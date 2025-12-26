@@ -4,21 +4,36 @@ import { useAuthStore } from './store/authStore';
 
 // Pages
 import Home from './pages/Home';
-import Login from './pages/Login';
-import SignUp from './pages/SignUp';
-import Dashboard from './pages/Dashboard';
+import StudentLogin from './pages/StudentLogin';
+import StudentSignup from './pages/StudentSignup';
+import AdminLogin from './pages/AdminLogin';
+import StudentDashboard from './pages/StudentDashboard';
+import AdminDashboard from './pages/AdminDashboard';
 import PostResource from './pages/PostResource';
 import ResourceDetail from './pages/ResourceDetail';
 
+// Legacy imports (backward compatibility)
+import Login from './pages/Login';
+import SignUp from './pages/SignUp';
+import Dashboard from './pages/Dashboard';
+
 // Protected Route Component
-const ProtectedRoute = ({ children }) => {
-  const { user, loading } = useAuthStore();
+const ProtectedRoute = ({ children, requiredRole = null }) => {
+  const { user, userProfile, loading } = useAuthStore();
 
   if (loading) {
     return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>Loading...</div>;
   }
 
-  return user ? children : <Navigate to="/login" />;
+  if (!user) {
+    return <Navigate to="/" />;
+  }
+
+  if (requiredRole && userProfile?.role !== requiredRole) {
+    return <Navigate to="/" />;
+  }
+
+  return children;
 };
 
 function App() {
@@ -31,21 +46,37 @@ function App() {
   return (
     <Router>
       <Routes>
+        {/* Public Routes */}
         <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<SignUp />} />
+
+        {/* Student Routes */}
+        <Route path="/student-login" element={<StudentLogin />} />
+        <Route path="/student-signup" element={<StudentSignup />} />
         <Route
-          path="/dashboard"
+          path="/student-dashboard"
           element={
-            <ProtectedRoute>
-              <Dashboard />
+            <ProtectedRoute requiredRole="student">
+              <StudentDashboard />
             </ProtectedRoute>
           }
         />
+
+        {/* Admin Routes */}
+        <Route path="/admin-login" element={<AdminLogin />} />
+        <Route
+          path="/admin-dashboard"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Shared Routes */}
         <Route
           path="/post-resource"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute requiredRole="student">
               <PostResource />
             </ProtectedRoute>
           }
@@ -55,6 +86,18 @@ function App() {
           element={
             <ProtectedRoute>
               <ResourceDetail />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Legacy Routes (backward compatibility) */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<SignUp />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
             </ProtectedRoute>
           }
         />

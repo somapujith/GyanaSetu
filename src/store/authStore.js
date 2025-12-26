@@ -33,7 +33,7 @@ export const useAuthStore = create((set) => ({
   },
 
   // Register new user
-  register: async (email, password, college, fullName) => {
+  register: async (email, password, college, fullName, role = 'student', rollNo = '') => {
     try {
       set({ error: null });
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -45,6 +45,8 @@ export const useAuthStore = create((set) => ({
         email,
         fullName,
         college,
+        role,
+        rollNo: role === 'student' ? rollNo : '',
         createdAt: new Date().toISOString(),
         avatar: null,
         bio: '',
@@ -63,7 +65,7 @@ export const useAuthStore = create((set) => ({
   },
 
   // Login user
-  login: async (email, password) => {
+  login: async (email, password, role = 'student') => {
     try {
       set({ error: null });
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -72,8 +74,14 @@ export const useAuthStore = create((set) => ({
       // Fetch user profile
       const docRef = doc(db, 'users', user.uid);
       const docSnap = await getDoc(docRef);
+      const userProfile = docSnap.data();
 
-      set({ user, userProfile: docSnap.data() });
+      // Verify role matches
+      if (userProfile?.role !== role) {
+        throw new Error(`Invalid login. Expected ${role}, but account is ${userProfile?.role || 'undefined'}`);
+      }
+
+      set({ user, userProfile });
       return user;
     } catch (error) {
       const errorMessage = error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password'

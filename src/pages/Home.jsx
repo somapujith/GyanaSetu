@@ -13,9 +13,13 @@ const Home = () => {
 
   const handleGetStarted = () => {
     if (user) {
-      navigate('/dashboard');
+      if (user.userProfile?.role === 'admin') {
+        navigate('/admin-dashboard');
+      } else {
+        navigate('/student-dashboard');
+      }
     } else {
-      navigate('/signup');
+      navigate('/student-login');
     }
   };
 
