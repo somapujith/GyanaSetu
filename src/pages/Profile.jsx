@@ -1,18 +1,21 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useToastStore } from '../store/toastStore';
+import { useResourceStore } from '../store/resourceStore';
 import { uploadProfilePhoto } from '../services/storage';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { ROUTES } from '../constants/routes';
 import Loading from '../components/Loading';
 import './Profile.css';
+import '../styles/student-dashboard.css';
 
 export default function Profile() {
   const navigate = useNavigate();
-  const { user, userProfile, fetchUserProfile } = useAuthStore();
+  const { user, userProfile, fetchUserProfile, logout } = useAuthStore();
   const { showSuccess, showError } = useToastStore();
+  const { favorites } = useResourceStore();
   const [profile, setProfile] = useState({
     fullName: '',
     email: '',
@@ -25,6 +28,20 @@ export default function Profile() {
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editingSection, setEditingSection] = useState(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Navigation functions
+  const handleGoHome = () => navigate(ROUTES.HOME);
+  const handleGoToDashboard = () => navigate(ROUTES.STUDENT_DASHBOARD);
+  const handleGoToBrowse = () => navigate(ROUTES.BROWSE_RESOURCES);
+  const handleGoToFavorites = () => navigate(ROUTES.MY_FAVORITES);
+  const handleGoToRequests = () => navigate(ROUTES.MY_REQUESTS);
+  const handleGoToPost = () => navigate(ROUTES.POST_RESOURCE);
+
+  const handleLogout = async () => {
+    await logout();
+    navigate(ROUTES.HOME);
+  };
 
   // Load user profile data
   useEffect(() => {
@@ -118,43 +135,119 @@ export default function Profile() {
     }
   };
 
-  const completionPercentage = 40;
-  const completionItems = [
-    { label: 'Setup account', percentage: 10, completed: true },
-    { label: 'Upload your photo', percentage: 5, completed: true },
-    { label: 'Personal Info', percentage: 10, completed: true },
-    { label: 'Location', percentage: 20, completed: false },
-    { label: 'Biography', percentage: 15, completed: false },
-    { label: 'Notifications', percentage: 10, completed: false },
-    { label: 'Bank details', percentage: 30, completed: false },
-  ];
+  // Calculate profile completion dynamically
+  const completionData = useMemo(() => {
+    const items = [
+      { 
+        label: 'Setup account', 
+        percentage: 10, 
+        completed: !!user && !!userProfile 
+      },
+      { 
+        label: 'Upload your photo', 
+        percentage: 5, 
+        completed: !!profile.photoPreview 
+      },
+      { 
+        label: 'Personal Info', 
+        percentage: 10, 
+        completed: !!profile.fullName && !!profile.email 
+      },
+      { 
+        label: 'Location', 
+        percentage: 20, 
+        completed: !!profile.location && profile.location.trim().length > 0 
+      },
+      { 
+        label: 'Biography', 
+        percentage: 15, 
+        completed: !!profile.bio && profile.bio.trim().length > 0 
+      },
+      { 
+        label: 'Phone', 
+        percentage: 10, 
+        completed: !!profile.phone && profile.phone.trim().length > 0 
+      },
+    ];
+
+    const totalPercentage = items.reduce((sum, item) => 
+      sum + (item.completed ? item.percentage : 0), 0
+    );
+
+    return { items, totalPercentage };
+  }, [user, userProfile, profile]);
 
   return (
-    <div className="profile-container">
-      <aside className="profile-sidebar">
-        <div className="sidebar-header">
-          <div className="sidebar-logo">
-            <span className="logo-icon">📚</span>
-            <span className="logo-text">GyanaSetu</span>
+    <div className="student-dashboard">
+      {/* Top Navigation Bar */}
+      <nav className="dashboard-nav">
+        <div className="nav-brand" onClick={handleGoHome}>
+          <span className="brand-icon">📚</span>
+          <span className="brand-text">GyanaSetu</span>
+        </div>
+        
+        <div className={`nav-links ${mobileMenuOpen ? 'open' : ''}`}>
+          <button className="nav-link" onClick={handleGoToDashboard}>
+            <ion-icon name="grid-outline"></ion-icon>
+            Dashboard
+          </button>
+          <button className="nav-link" onClick={handleGoToBrowse}>
+            <ion-icon name="search-outline"></ion-icon>
+            Browse
+          </button>
+          <button className="nav-link" onClick={handleGoToFavorites}>
+            <ion-icon name="bookmark-outline"></ion-icon>
+            Favorites
+            {favorites?.length > 0 && <span className="nav-badge">{favorites.length}</span>}
+          </button>
+          <button className="nav-link" onClick={handleGoToRequests}>
+            <ion-icon name="mail-outline"></ion-icon>
+            My Requests
+          </button>
+          <button className="nav-link" onClick={handleGoToPost}>
+            <ion-icon name="add-circle-outline"></ion-icon>
+            Share Resource
+          </button>
+        </div>
+
+        <div className="nav-actions">
+          <button className="nav-icon-btn active" onClick={() => setMobileMenuOpen(false)} title="Profile">
+            <ion-icon name="person-circle-outline"></ion-icon>
+          </button>
+          <button className="nav-icon-btn logout" onClick={handleLogout} title="Logout">
+            <ion-icon name="log-out-outline"></ion-icon>
+          </button>
+          <button className="mobile-menu-btn" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+            <ion-icon name={mobileMenuOpen ? 'close-outline' : 'menu-outline'}></ion-icon>
+          </button>
+        </div>
+      </nav>
+
+      <div className="profile-container">
+        <aside className="profile-sidebar">
+          <div className="sidebar-header">
+            <div className="sidebar-logo">
+              <span className="logo-icon">📚</span>
+              <span className="logo-text">GyanaSetu</span>
+            </div>
           </div>
-        </div>
-        <div className="sidebar-section">
-          <div className="sidebar-label">Profile</div>
-          <button className="sidebar-item active" onClick={() => navigate(ROUTES.PROFILE)}>
-            <ion-icon name="person-outline"></ion-icon>
-            <span>Edit Profile</span>
-          </button>
-          <button className="sidebar-item" onClick={() => navigate('/profile/notifications')}>
-            <ion-icon name="notifications-outline"></ion-icon>
-            <span>Notifications</span>
-          </button>
-        </div>
-        <div className="sidebar-section">
-          <div className="sidebar-label">Secure</div>
-          <button className="sidebar-item" onClick={() => navigate('/profile/password')}>
-            <ion-icon name="lock-closed-outline"></ion-icon>
-            <span>Password</span>
-          </button>
+          <div className="sidebar-section">
+            <div className="sidebar-label">Profile</div>
+            <button className="sidebar-item active" onClick={() => navigate(ROUTES.PROFILE)}>
+              <ion-icon name="person-outline"></ion-icon>
+              <span>Edit Profile</span>
+            </button>
+            <button className="sidebar-item" onClick={() => navigate('/profile/notifications')}>
+              <ion-icon name="notifications-outline"></ion-icon>
+              <span>Notifications</span>
+            </button>
+          </div>
+          <div className="sidebar-section">
+            <div className="sidebar-label">Secure</div>
+            <button className="sidebar-item" onClick={() => navigate('/profile/password')}>
+              <ion-icon name="lock-closed-outline"></ion-icon>
+              <span>Password</span>
+            </button>
           <button className="sidebar-item" onClick={() => navigate('/profile/access')}>
             <ion-icon name="shield-checkmark-outline"></ion-icon>
             <span>Access</span>
@@ -323,15 +416,15 @@ export default function Profile() {
                       stroke="#10b981" 
                       strokeWidth="8"
                       strokeDasharray={`${2 * Math.PI * 54}`}
-                      strokeDashoffset={`${2 * Math.PI * 54 * (1 - completionPercentage / 100)}`}
+                      strokeDashoffset={`${2 * Math.PI * 54 * (1 - completionData.totalPercentage / 100)}`}
                       strokeLinecap="round"
                       transform="rotate(-90 60 60)"
                     />
                   </svg>
-                  <div className="completion-percentage">{completionPercentage}%</div>
+                  <div className="completion-percentage">{completionData.totalPercentage}%</div>
                 </div>
                 <ul className="completion-list">
-                  {completionItems.map((item, idx) => (
+                  {completionData.items.map((item, idx) => (
                     <li key={idx} className={item.completed ? 'completed' : ''}>
                       <ion-icon name={item.completed ? 'checkmark-outline' : 'close-outline'}></ion-icon>
                       <span>{item.label}</span>
@@ -346,6 +439,7 @@ export default function Profile() {
           </div>
         </div>
       </main>
+      </div>
     </div>
   );
 }

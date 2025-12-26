@@ -1,8 +1,9 @@
 /* Profile Container */
 .profile-container {
   display: flex;
-  min-height: 100vh;
+  min-height: calc(100vh - 60px);
   background: #f9fafb;
+  margin-top: 60px;
 }
 
 /* Sidebar */
@@ -15,8 +16,9 @@
   flex-direction: column;
   gap: 2rem;
   position: fixed;
-  height: 100vh;
+  height: calc(100vh - 60px);
   overflow-y: auto;
+  top: 60px;
 }
 
 .sidebar-header {
@@ -127,7 +129,7 @@
   align-items: center;
   justify-content: space-between;
   position: sticky;
-  top: 0;
+  top: 60px;
   z-index: 10;
 }
 
@@ -570,6 +572,10 @@
 }
 
 @media (max-width: 768px) {
+  .profile-container {
+    margin-top: 60px;
+  }
+  
   .profile-sidebar {
     width: 100%;
     height: auto;
@@ -580,6 +586,7 @@
     flex-direction: row;
     overflow-x: auto;
     gap: 0.5rem;
+    top: 60px;
   }
   
   .profile-main {
@@ -609,6 +616,7 @@
   .profile-header {
     flex-wrap: wrap;
     gap: 1rem;
+    top: 60px;
   }
   
   .profile-search {

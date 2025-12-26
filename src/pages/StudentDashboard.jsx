@@ -15,9 +15,8 @@ export default function StudentDashboard() {
   const navigate = useNavigate();
 
   const [selectedCategory, setSelectedCategory] = useState(FILTER_ALL);
-  const [selectedCollege, setSelectedCollege] = useState(
-    userProfile?.college || FILTER_ALL
-  );
+  // Students can only see resources from their own college
+  const userCollege = userProfile?.college;
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedResource, setSelectedResource] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -28,33 +27,33 @@ export default function StudentDashboard() {
     }
   }, [user, navigate]);
 
-  useEffect(() => {
-    if (userProfile?.college && selectedCollege === FILTER_ALL) {
-      setSelectedCollege(userProfile.college);
-    }
-  }, [userProfile?.college, selectedCollege]);
+  // No longer needed - students only see their own college
 
   useEffect(() => {
-    fetchResources({
-      category: selectedCategory === FILTER_ALL ? null : selectedCategory,
-      college: selectedCollege === FILTER_ALL ? null : selectedCollege,
-      status: 'available', // Only show approved resources
-    });
+    // Students can only see resources from their own college
+    if (userCollege) {
+      fetchResources({
+        category: selectedCategory === FILTER_ALL ? null : selectedCategory,
+        college: userCollege, // Always filter by user's college
+        status: 'available', // Only show approved resources
+      });
+    }
     // Load user favorites
     if (user) {
       fetchFavorites(user.uid);
     }
-  }, [selectedCategory, selectedCollege, fetchResources, fetchFavorites, user]);
+  }, [selectedCategory, userCollege, fetchResources, fetchFavorites, user]);
 
   const handleSearch = (e) => {
     const term = e.target.value;
     setSearchTerm(term);
     if (term.trim()) {
-      searchResources(term);
+      // Search within user's college only
+      searchResources(term, { college: userCollege, status: 'available' });
     } else {
       fetchResources({
         category: selectedCategory === FILTER_ALL ? null : selectedCategory,
-        college: selectedCollege === FILTER_ALL ? null : selectedCollege,
+        college: userCollege, // Always filter by user's college
         status: 'available', // Only show approved resources
       });
     }
@@ -65,11 +64,7 @@ export default function StudentDashboard() {
     navigate(ROUTES.HOME);
   };
 
-  const colleges = useMemo(() => {
-    const collegeSet = new Set(resources.map((r) => r.college).filter(Boolean));
-    if (userProfile?.college) collegeSet.add(userProfile.college);
-    return [FILTER_ALL, ...Array.from(collegeSet).sort()];
-  }, [resources, userProfile?.college]);
+  // Students only see their own college - no college dropdown needed
 
   const categories = RESOURCE_CATEGORIES;
 
@@ -174,24 +169,16 @@ export default function StudentDashboard() {
 
           <div className="filter-section">
             <h4>{UI_TEXT.college}</h4>
-            <select
-              value={selectedCollege}
-              onChange={(e) => setSelectedCollege(e.target.value)}
-              className="filter-select"
-            >
-              {colleges.map((col) => (
-                <option key={col} value={col}>
-                  {col === FILTER_ALL ? 'All colleges' : col}
-                </option>
-              ))}
-            </select>
+            <div className="college-display">
+              <ion-icon name="school-outline"></ion-icon>
+              <span>{userCollege || 'Loading...'}</span>
+            </div>
           </div>
 
           <button
             className="btn-secondary"
             onClick={() => {
               setSelectedCategory(FILTER_ALL);
-              setSelectedCollege(FILTER_ALL);
               setSearchTerm('');
             }}
           >

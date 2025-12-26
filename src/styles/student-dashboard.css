@@ -444,6 +444,25 @@
   background-color: white;
 }
 
+/* College display (fixed, non-editable) */
+.student-dashboard .college-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 100%);
+  border: 1px solid #c7d2fe;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #4338ca;
+}
+
+.student-dashboard .college-display ion-icon {
+  font-size: 18px;
+  color: #6366f1;
+}
+
 .student-dashboard .sidebar .btn-secondary {
   width: 100%;
   padding: 10px 12px;

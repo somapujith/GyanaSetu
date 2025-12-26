@@ -145,29 +145,71 @@ export const useResourceStore = create((set, get) => ({
   },
 
   // Search resources
-  searchResources: async (searchTerm) => {
+  searchResources: async (searchTerm, filters = {}) => {
     try {
       set({ error: null, loading: true });
-      const q = query(
-        collection(db, 'resources'),
-        orderBy('title'),
-        where('title', '>=', searchTerm),
-        where('title', '<=', searchTerm + '\uf8ff')
-      );
+      
+      // Fetch all resources first, then filter client-side for better search
+      let q = collection(db, 'resources');
+      const constraints = [];
+      
+      // Apply filters
+      if (filters.college) constraints.push(where('college', '==', filters.college));
+      if (filters.status) constraints.push(where('status', '==', filters.status));
+      
+      if (constraints.length > 0) {
+        q = query(q, ...constraints, orderBy('createdAt', 'desc'));
+      } else {
+        q = query(q, orderBy('createdAt', 'desc'));
+      }
+      
       const snapshot = await getDocs(q);
-      const resources = snapshot.docs.map((doc) => ({
+      let resources = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
+      
+      // Client-side text search
+      if (searchTerm && searchTerm.trim()) {
+        const term = searchTerm.toLowerCase();
+        resources = resources.filter(
+          (r) =>
+            r.title?.toLowerCase().includes(term) ||
+            r.description?.toLowerCase().includes(term) ||
+            r.userName?.toLowerCase().includes(term) ||
+            r.department?.toLowerCase().includes(term)
+        );
+      }
+      
+      set({ resources });
       return resources;
     } catch (error) {
       // Fallback to client-side search if query fails
+      console.warn('Search query failed, using client-side filter:', error.message);
       const allResources = get().resources;
-      const filtered = allResources.filter(
-        (r) =>
-          r.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          r.description.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      let filtered = allResources;
+      
+      // Apply college filter
+      if (filters.college) {
+        filtered = filtered.filter((r) => r.college === filters.college);
+      }
+      
+      // Apply status filter
+      if (filters.status) {
+        filtered = filtered.filter((r) => r.status === filters.status);
+      }
+      
+      // Apply search term
+      if (searchTerm && searchTerm.trim()) {
+        const term = searchTerm.toLowerCase();
+        filtered = filtered.filter(
+          (r) =>
+            r.title?.toLowerCase().includes(term) ||
+            r.description?.toLowerCase().includes(term)
+        );
+      }
+      
+      set({ resources: filtered });
       return filtered;
     } finally {
       set({ loading: false });

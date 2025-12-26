@@ -15,7 +15,8 @@ export default function BrowseResources() {
   const navigate = useNavigate();
 
   const [selectedCategory, setSelectedCategory] = useState(FILTER_ALL);
-  const [selectedCollege, setSelectedCollege] = useState(FILTER_ALL);
+  // Students can only browse resources from their own college
+  const userCollege = userProfile?.college;
   const [selectedDepartment, setSelectedDepartment] = useState(FILTER_ALL);
   const [selectedCondition, setSelectedCondition] = useState(FILTER_ALL);
   const [sortBy, setSortBy] = useState('newest');
@@ -37,21 +38,17 @@ export default function BrowseResources() {
     navigate(ROUTES.HOME);
   };
 
-  // Initialize with user's college
-  useEffect(() => {
-    if (userProfile?.college) {
-      setSelectedCollege(userProfile.college);
-    }
-  }, [userProfile?.college]);
+  // Students can only see their own college - college is fixed
 
   // Fetch resources and favorites when filters change
   useEffect(() => {
     const loadResources = async () => {
+      if (!userCollege) return; // Wait for user college to load
       setIsLoading(true);
       try {
         await fetchResources({
           category: selectedCategory === FILTER_ALL ? null : selectedCategory,
-          college: selectedCollege === FILTER_ALL ? null : selectedCollege,
+          college: userCollege, // Always filter by user's college
           status: 'available', // Only show approved resources to students
         });
         // Load user's favorites
@@ -65,15 +62,9 @@ export default function BrowseResources() {
       }
     };
     loadResources();
-  }, [selectedCategory, selectedCollege, fetchResources, fetchFavorites, user]);
+  }, [selectedCategory, userCollege, fetchResources, fetchFavorites, user]);
 
-  // Get unique colleges from resources
-  const colleges = useMemo(() => {
-    const collegeSet = new Set(resources.map((r) => r.college).filter(Boolean));
-    if (userProfile?.college) collegeSet.add(userProfile.college);
-    return [FILTER_ALL, ...Array.from(collegeSet).sort()];
-  }, [resources, userProfile?.college]);
-
+  // Students only see their own college - no dropdown needed
   const categories = RESOURCE_CATEGORIES;
   const conditions = [FILTER_ALL, 'excellent', 'good', 'fair', 'used'];
 
@@ -99,10 +90,8 @@ export default function BrowseResources() {
       filtered = filtered.filter((r) => r.category === selectedCategory);
     }
 
-    // Apply college filter
-    if (selectedCollege !== FILTER_ALL) {
-      filtered = filtered.filter((r) => r.college === selectedCollege);
-    }
+    // College is already filtered by user's college in the API call
+    // No need for client-side college filter
 
     // Apply department filter
     if (selectedDepartment !== FILTER_ALL) {
@@ -128,20 +117,16 @@ export default function BrowseResources() {
       case 'title-desc':
         filtered.sort((a, b) => b.title.localeCompare(a.title));
         break;
-      case 'college':
-        filtered.sort((a, b) => a.college.localeCompare(b.college));
-        break;
       default:
         break;
     }
 
     return filtered;
-  }, [resources, searchTerm, selectedCategory, selectedCollege, selectedDepartment, selectedCondition, sortBy]);
+  }, [resources, searchTerm, selectedCategory, selectedDepartment, selectedCondition, sortBy]);
 
   // Reset filters
   const resetFilters = () => {
     setSelectedCategory(FILTER_ALL);
-    setSelectedCollege(userProfile?.college || FILTER_ALL);
     setSelectedDepartment(FILTER_ALL);
     setSelectedCondition(FILTER_ALL);
     setSortBy('newest');
@@ -257,17 +242,10 @@ export default function BrowseResources() {
 
           <div className="filter-section">
             <h4>College</h4>
-            <select
-              value={selectedCollege}
-              onChange={(e) => setSelectedCollege(e.target.value)}
-              className="filter-select"
-            >
-              {colleges.map((col) => (
-                <option key={col} value={col}>
-                  {col === FILTER_ALL ? 'All colleges' : col}
-                </option>
-              ))}
-            </select>
+            <div className="college-display">
+              <ion-icon name="school-outline"></ion-icon>
+              <span>{userCollege || 'Loading...'}</span>
+            </div>
           </div>
 
           <div className="filter-section">
@@ -329,7 +307,7 @@ export default function BrowseResources() {
               <div className="empty-state">
                 <p>📚 No resources found</p>
                 <p className="empty-subtitle">
-                  {searchTerm || selectedCategory !== FILTER_ALL || selectedCollege !== FILTER_ALL 
+                  {searchTerm || selectedCategory !== FILTER_ALL 
                     ? 'Try different search terms or adjust filters'
                     : 'Try adjusting your filters or be the first to share a resource!'}
                 </p>

@@ -38,7 +38,12 @@ export default function MyFavorites() {
       setIsLoading(true);
       try {
         await fetchFavorites(user.uid);
-        await fetchResources({ status: 'available' }); // Only show approved resources
+        // Fetch resources from user's college only
+        const userCollege = userProfile?.college;
+        await fetchResources({ 
+          status: 'available',
+          college: userCollege // Only show resources from user's college
+        });
       } catch (error) {
         console.error('Error loading favorites:', error);
       } finally {
@@ -47,7 +52,7 @@ export default function MyFavorites() {
     };
 
     loadData();
-  }, [user, navigate, fetchFavorites, fetchResources]);
+  }, [user, userProfile?.college, navigate, fetchFavorites, fetchResources]);
 
   // Filter resources to show only favorited ones
   const favoritedResources = resources.filter((r) => favorites.includes(r.id));
