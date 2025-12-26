@@ -301,6 +301,37 @@
   line-height: 1.6;
 }
 
+.btn-remove-photo {
+  margin-top: 0.75rem;
+  padding: 0.5rem 1rem;
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-remove-photo:hover:not(:disabled) {
+  background: #fecaca;
+  border-color: #fca5a5;
+  transform: translateY(-1px);
+}
+
+.btn-remove-photo:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-remove-photo ion-icon {
+  font-size: 1.1rem;
+}
+
 .card-header {
   display: flex;
   align-items: center;

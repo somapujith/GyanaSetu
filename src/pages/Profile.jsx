@@ -124,6 +124,34 @@ export default function Profile() {
     }
   };
 
+  const handleRemovePhoto = async () => {
+    if (!profile.photoPreview) return;
+    
+    setUploading(true);
+    try {
+      // Remove photo from Firestore
+      await updateDoc(doc(db, 'users', user.uid), {
+        photoURL: null,
+      });
+
+      // Update local state
+      setProfile(prev => ({ 
+        ...prev, 
+        photo: null, 
+        photoPreview: null 
+      }));
+
+      // Refresh user profile
+      await fetchUserProfile(user.uid);
+      showSuccess('Profile photo removed successfully!');
+    } catch (error) {
+      console.error('Error removing photo:', error);
+      showError('Failed to remove profile photo');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleEditSection = section => setEditingSection(section);
   const handleCancelEdit = () => setEditingSection(null);
   
@@ -286,9 +314,6 @@ export default function Profile() {
               <ion-icon name="notifications-outline"></ion-icon>
               <span className="notification-badge">2</span>
             </button>
-            <button className="header-avatar" onClick={() => navigate(ROUTES.STUDENT_DASHBOARD)}>
-              <img src={profile.photoPreview || "https://via.placeholder.com/40"} alt="User" />
-            </button>
           </div>
         </header>
 
@@ -321,6 +346,17 @@ export default function Profile() {
                 <div className="photo-info">
                   <h3>Upload new photo</h3>
                   <p>At least 800×800 px recommended.<br />JPG or PNG is allowed (max 5MB)</p>
+                  {profile.photoPreview && (
+                    <button 
+                      onClick={handleRemovePhoto} 
+                      className="btn-remove-photo"
+                      disabled={uploading}
+                      type="button"
+                    >
+                      <ion-icon name="trash-outline"></ion-icon>
+                      Remove Photo
+                    </button>
+                  )}
                 </div>
               </section>
 
