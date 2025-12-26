@@ -1,0 +1,16 @@
+export const DEPARTMENTS = [
+  'Computer Science',
+  'Electronics',
+  'ECE',
+  'CSIT',
+  'Mechanical',
+  'Civil',
+  'Electrical',
+  'Chemical',
+  'Biotechnology',
+  'MBA',
+  'Arts',
+  'Commerce',
+  'Science',
+  'Other',
+];

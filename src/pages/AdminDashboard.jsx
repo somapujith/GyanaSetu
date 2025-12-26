@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useResourceStore } from '../store/resourceStore';
+import { ROUTES } from '../constants/routes';
 import '../styles/admin-dashboard.css';
 
 export default function AdminDashboard() {
@@ -18,7 +19,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (!user || userProfile?.role !== 'admin') {
-      navigate('/admin-login');
+      navigate(ROUTES.ADMIN_LOGIN);
     }
   }, [user, userProfile, navigate]);
 
@@ -39,7 +40,7 @@ export default function AdminDashboard() {
 
   const handleLogout = async () => {
     await logout();
-    navigate('/');
+    navigate(ROUTES.HOME);
   };
 
   const getResourcesByCollege = () => {

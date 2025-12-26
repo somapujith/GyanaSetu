@@ -1,13 +1,16 @@
 @import url("https://fonts.cdnfonts.com/css/pp-neue-montreal");
 
+/* Updated styles for a formal and neat design */
+body {
+  font-family: "PP Neue Montreal", sans-serif;
+  background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+  color: #343a40;
+}
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-}
-
-body {
-  font-family: "PP Neue Montreal", sans-serif;
 }
 
 img {
@@ -47,6 +50,7 @@ p {
   width: 100vw;
   height: 100svh;
   overflow: hidden;
+  padding: 2rem;
 }
 
 .hero-img {
@@ -67,6 +71,10 @@ p {
   align-items: center;
   gap: 1.5em;
   will-change: transform;
+  background-color: #ffffff;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 1rem 2rem;
+  border-radius: 8px;
 }
 
 .nav > div {
@@ -83,6 +91,12 @@ p {
   display: flex;
   gap: 1.5em;
   justify-content: center;
+}
+
+.nav-links a {
+  color: #007bff;
+  font-weight: 600;
+  text-decoration: none;
 }
 
 .btn {
@@ -110,6 +124,8 @@ p {
   flex-direction: column;
   align-items: center;
   gap: 1.5em;
+  text-align: center;
+  margin-bottom: 2rem;
 }
 
 .cta {
@@ -122,9 +138,18 @@ p {
   padding: 0.5rem;
   display: flex;
   justify-content: flex-end;
-  background-color: #fff;
-  border-radius: 4rem;
+  background-color: #007bff;
+  color: #ffffff;
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: bold;
   will-change: transform;
+}
+
+.cta:hover {
+  background-color: #0056b3;
 }
 
 .cta-label {
@@ -302,6 +327,45 @@ p {
 .hero-img {
   transform: scale(1.5);
   will-change: transform;
+}
+
+.resource-card {
+  background-color: #ffffff;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1rem 0;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.resource-card h3 {
+  color: #343a40;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.resource-card p {
+  color: #6c757d;
+  font-size: 14px;
+}
+
+.resource-card .actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+}
+
+.resource-card .actions button {
+  background-color: #007bff;
+  color: #ffffff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.resource-card .actions button:hover {
+  background-color: #0056b3;
 }
 
 @media (max-width: 900px) {

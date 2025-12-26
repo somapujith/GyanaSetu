@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useResourceStore } from '../store/resourceStore';
+import { ROUTES } from '../constants/routes';
 import '../styles/resource-detail.css';
 
 const ResourceDetail = () => {
@@ -19,7 +20,7 @@ const ResourceDetail = () => {
     return (
       <div className="detail-container">
         <p>Resource not found</p>
-        <button onClick={() => navigate('/dashboard')}>Back to Dashboard</button>
+        <button onClick={() => navigate(-1)}>Go back</button>
       </div>
     );
   }
@@ -27,7 +28,7 @@ const ResourceDetail = () => {
   const handleRequest = async (e) => {
     e.preventDefault();
     if (!user) {
-      navigate('/login');
+      navigate(ROUTES.HOME);
       return;
     }
 
@@ -45,7 +46,7 @@ const ResourceDetail = () => {
 
   return (
     <div className="detail-container">
-      <button className="btn-back" onClick={() => navigate('/dashboard')}>
+      <button className="btn-back" onClick={() => navigate(-1)}>
         ← Back to Resources
       </button>
 
@@ -138,7 +139,7 @@ const ResourceDetail = () => {
                   <button
                     className="btn-primary"
                     onClick={() => {
-                      if (!user) navigate('/login');
+                      if (!user) navigate(ROUTES.HOME);
                       else setShowRequestForm(true);
                     }}
                   >

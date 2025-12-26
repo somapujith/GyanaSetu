@@ -4,7 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "vite"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "firebase:setup": "node scripts/setupFirebase.js",
+    "firebase:deploy-rules": "firebase deploy --only firestore:rules",
+    "firebase:init": "firebase init"
   },
   "keywords": [],
   "author": "",
@@ -15,6 +20,7 @@
     "axios": "^1.13.2",
     "firebase": "^12.7.0",
     "gsap": "^3.12.7",
+    "motion": "^11.0.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-router-dom": "^7.11.0",

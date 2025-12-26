@@ -1,15 +1,10 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import Silk from '../components/Silk';
+import { COLLEGES } from '../constants/colleges';
+import { ROUTES } from '../constants/routes';
 import '../styles/auth.css';
-
-const COLLEGES = [
-  'IIIT Hyderabad',
-  'Osmania University',
-  'JNTU Hyderabad',
-  'BITS Pilani Hyderabad',
-  'VNR Vignana Jyothi Institute',
-];
 
 export default function StudentSignup() {
   const [formData, setFormData] = useState({
@@ -72,7 +67,7 @@ export default function StudentSignup() {
         'student',
         formData.rollNo
       );
-      navigate('/student-dashboard');
+      navigate(ROUTES.STUDENT_DASHBOARD);
     } catch (err) {
       console.error('Signup error:', err);
     }
@@ -87,7 +82,11 @@ export default function StudentSignup() {
   };
 
   return (
-    <div className="auth-container">
+    <div className="auth-page">
+      <div className="auth-background">
+        <Silk speed={5} scale={1} color="#7B7481" noiseIntensity={1.5} rotation={0} />
+      </div>
+      <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
           <h1>Join GyanaSetu</h1>
@@ -207,18 +206,19 @@ export default function StudentSignup() {
         <div className="auth-divider">ALREADY HAVE AN ACCOUNT?</div>
 
         <div className="auth-links">
-          <Link to="/student-login" className="auth-link">
+          <Link to={ROUTES.STUDENT_LOGIN} className="auth-link">
             Login as Student
           </Link>
         </div>
 
         <div className="auth-footer">
           <p>Looking for admin access?</p>
-          <Link to="/admin-login" className="auth-link-secondary">
+          <Link to={ROUTES.ADMIN_LOGIN} className="auth-link-secondary">
             Admin Login
           </Link>
         </div>
       </div>
+    </div>
     </div>
   );
 }

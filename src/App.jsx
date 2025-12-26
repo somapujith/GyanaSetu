@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
+import { ROUTES } from './constants/routes';
 
 // Pages
 import Home from './pages/Home';
@@ -11,11 +12,18 @@ import StudentDashboard from './pages/StudentDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import PostResource from './pages/PostResource';
 import ResourceDetail from './pages/ResourceDetail';
+import BrowseResources from './pages/BrowseResources';
+import MyRequests from './pages/MyRequests';
 
-// Legacy imports (backward compatibility)
-import Login from './pages/Login';
-import SignUp from './pages/SignUp';
-import Dashboard from './pages/Dashboard';
+// Legacy routes redirect to the new student/admin flow
+
+const LegacyDashboardRedirect = () => {
+  const { userProfile } = useAuthStore();
+  if (userProfile?.role === 'admin') {
+    return <Navigate to={ROUTES.ADMIN_DASHBOARD} replace />;
+  }
+  return <Navigate to={ROUTES.STUDENT_DASHBOARD} replace />;
+};
 
 // Protected Route Component
 const ProtectedRoute = ({ children, requiredRole = null }) => {
@@ -60,6 +68,22 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/browse"
+          element={
+            <ProtectedRoute requiredRole="student">
+              <BrowseResources />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/requests"
+          element={
+            <ProtectedRoute requiredRole="student">
+              <MyRequests />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Admin Routes */}
         <Route path="/admin-login" element={<AdminLogin />} />
@@ -91,13 +115,13 @@ function App() {
         />
 
         {/* Legacy Routes (backward compatibility) */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<SignUp />} />
+        <Route path="/login" element={<Navigate to={ROUTES.STUDENT_LOGIN} replace />} />
+        <Route path="/signup" element={<Navigate to={ROUTES.STUDENT_SIGNUP} replace />} />
         <Route
           path="/dashboard"
           element={
             <ProtectedRoute>
-              <Dashboard />
+              <LegacyDashboardRedirect />
             </ProtectedRoute>
           }
         />

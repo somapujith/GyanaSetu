@@ -9,6 +9,7 @@ import {
   updateDoc,
   doc,
   deleteDoc,
+  serverTimestamp,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 
@@ -23,7 +24,7 @@ export const useResourceStore = create((set, get) => ({
       set({ error: null, loading: true });
       const docRef = await addDoc(collection(db, 'resources'), {
         ...resourceData,
-        createdAt: new Date().toISOString(),
+        createdAt: serverTimestamp(),
         requests: [],
         status: 'available',
       });
@@ -43,10 +44,13 @@ export const useResourceStore = create((set, get) => ({
       let q = collection(db, 'resources');
 
       const constraints = [];
+      
+      // Build constraints based on filters
       if (filters.category) constraints.push(where('category', '==', filters.category));
       if (filters.college) constraints.push(where('college', '==', filters.college));
       if (filters.status) constraints.push(where('status', '==', filters.status));
 
+      // Apply query with constraints
       if (constraints.length > 0) {
         q = query(q, ...constraints, orderBy('createdAt', 'desc'));
       } else {
@@ -62,6 +66,40 @@ export const useResourceStore = create((set, get) => ({
       set({ resources });
       return resources;
     } catch (error) {
+      // If index error, try without ordering (fallback)
+      if (error.code === 'failed-precondition' || error.message.includes('index')) {
+        console.warn('Index not available, fetching without order:', error.message);
+        try {
+          let fallbackQuery = collection(db, 'resources');
+          const constraints = [];
+          if (filters.category) constraints.push(where('category', '==', filters.category));
+          if (filters.college) constraints.push(where('college', '==', filters.college));
+          if (filters.status) constraints.push(where('status', '==', filters.status));
+          
+          if (constraints.length > 0) {
+            fallbackQuery = query(fallbackQuery, ...constraints);
+          }
+          
+          const snapshot = await getDocs(fallbackQuery);
+          const resources = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+          
+          // Sort client-side
+          resources.sort((a, b) => {
+            const dateA = a.createdAt?.toDate?.() || new Date(0);
+            const dateB = b.createdAt?.toDate?.() || new Date(0);
+            return dateB - dateA;
+          });
+          
+          set({ resources });
+          return resources;
+        } catch (fallbackError) {
+          set({ error: fallbackError.message });
+          throw fallbackError;
+        }
+      }
       set({ error: error.message });
       throw error;
     } finally {
@@ -154,7 +192,7 @@ export const useResourceStore = create((set, get) => ({
       const newRequest = {
         userId,
         message,
-        createdAt: new Date().toISOString(),
+        createdAt: serverTimestamp(),
         status: 'pending',
       };
 

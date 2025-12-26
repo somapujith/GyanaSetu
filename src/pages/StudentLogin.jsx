@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import Silk from '../components/Silk';
+import { ROUTES } from '../constants/routes';
 import '../styles/auth.css';
 
 export default function StudentLogin() {
@@ -20,14 +22,18 @@ export default function StudentLogin() {
 
     try {
       await login(email, password, 'student');
-      navigate('/student-dashboard');
+      navigate(ROUTES.STUDENT_DASHBOARD);
     } catch (err) {
       console.error('Login error:', err);
     }
   };
 
   return (
-    <div className="auth-container">
+    <div className="auth-page">
+      <div className="auth-background">
+        <Silk speed={5} scale={1} color="#7B7481" noiseIntensity={1.5} rotation={0} />
+      </div>
+      <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
           <h1>Student Login</h1>
@@ -83,18 +89,19 @@ export default function StudentLogin() {
 
         <div className="auth-links">
           <p>New to GyanaSetu?</p>
-          <Link to="/student-signup" className="auth-link">
+          <Link to={ROUTES.STUDENT_SIGNUP} className="auth-link">
             Sign up as Student
           </Link>
         </div>
 
         <div className="auth-footer">
           <p>Are you an admin?</p>
-          <Link to="/admin-login" className="auth-link-secondary">
+          <Link to={ROUTES.ADMIN_LOGIN} className="auth-link-secondary">
             Admin Login
           </Link>
         </div>
       </div>
+    </div>
     </div>
   );
 }

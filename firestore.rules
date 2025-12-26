@@ -1,0 +1,21 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow public read for resources
+    match /resources/{document=**} {
+      allow read: if true;
+      allow create: if request.auth.uid != null;
+      allow update, delete: if request.auth.uid == resource.data.userId;
+    }
+    
+    // Allow users to read/write their own profile
+    match /users/{userId} {
+      allow read, write: if request.auth.uid == userId;
+    }
+    
+    // Deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
