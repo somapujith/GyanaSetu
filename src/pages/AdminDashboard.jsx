@@ -1033,9 +1033,18 @@ export default function AdminDashboard() {
                     </div>
 
                     <div className="form-actions">
-                      <button type="button" className="btn-secondary" onClick={resetResourceForm} disabled={uploading}>Clear</button>
+                      <button type="button" className="btn-secondary" onClick={resetResourceForm} disabled={uploading}>
+                        Clear
+                      </button>
                       <button type="submit" className="btn-primary" disabled={uploading}>
-                        {uploading ? `Uploading... (${currentUploadIndex + 1}/${resourceFiles.length})` : `📤 Add Resource${resourceFiles.length > 0 ? ` (${resourceFiles.length} files)` : ''}`}
+                        {uploading ? (
+                          <>
+                            <span className="btn-spinner"></span>
+                            Uploading... ({currentUploadIndex + 1}/{resourceFiles.length})
+                          </>
+                        ) : (
+                          `📤 Add Resource${resourceFiles.length > 0 ? ` (${resourceFiles.length} files)` : ''}`
+                        )}
                       </button>
                     </div>
                   </div>
