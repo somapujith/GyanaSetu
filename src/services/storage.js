@@ -62,13 +62,15 @@ export const uploadProfilePhoto = async (file, userId) => {
 /**
  * Upload resource file
  * @param {File} file - Resource file
- * @param {string} userId - User ID
  * @param {Function} onProgress - Progress callback
- * @returns {Promise<string>} - Download URL
+ * @param {string} userId - Optional User ID (defaults to 'admin')
+ * @returns {Promise<{url: string, fileName: string}>} - Object with download URL and fileName
  */
-export const uploadResourceFile = async (file, userId, onProgress) => {
-  const path = `resources/${userId}/${Date.now()}_${file.name}`;
-  return uploadFile(file, path, onProgress);
+export const uploadResourceFile = async (file, onProgress, userId = 'admin') => {
+  const fileName = `${Date.now()}_${file.name}`;
+  const path = `resources/${userId}/${fileName}`;
+  const url = await uploadFile(file, path, onProgress);
+  return { url, fileName };
 };
 
 /**

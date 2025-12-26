@@ -13,44 +13,45 @@ export default function AdminSignup() {
     adminCode: '',
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState({});
   const { register, error, loading, clearError } = useAuthStore();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    const { fullName, email, password, confirmPassword, adminCode } = formData;
+
+    if (!fullName.trim()) newErrors.fullName = 'Full name is required';
+    if (!email.includes('@')) newErrors.email = 'Valid email is required';
+    if (password.length < 6) newErrors.password = 'Password must be at least 6 characters';
+    if (password !== confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
+    if (!adminCode) newErrors.adminCode = 'Admin code is required';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     clearError();
 
-    const { fullName, email, password, confirmPassword, adminCode } = formData;
+    if (!validateForm()) return;
 
-    if (!fullName || !email || !password || !confirmPassword || !adminCode) {
-      alert('Please fill in all fields');
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      alert('Passwords do not match');
-      return;
-    }
-
-    if (password.length < 6) {
-      alert('Password must be at least 6 characters');
-      return;
-    }
-
-    // Validate admin code (in production, this should be server-side)
-    if (adminCode !== 'ADMIN2025') {
-      alert('Invalid admin code. Contact system administrator.');
+    if (formData.adminCode !== 'ADMIN2025') {
+      setErrors(prev => ({ ...prev, adminCode: 'Invalid admin code' }));
       return;
     }
 
     try {
-      // Register as admin (college is 'Admin' for admins)
-      await register(email, password, 'GyanaSetu Admin', fullName, 'admin', '');
+      await register(formData.email, formData.password, 'GyanaSetu Admin', formData.fullName, 'admin', '');
       navigate(ROUTES.ADMIN_DASHBOARD);
     } catch (err) {
       console.error('Registration error:', err);
@@ -60,12 +61,14 @@ export default function AdminSignup() {
   return (
     <div className="auth-page admin-auth-page">
       <div className="auth-background admin-background">
-        <div className="admin-bg-pattern"></div>
+        <div className="admin-grid-pattern"></div>
+        <div className="admin-glow"></div>
       </div>
       <div className="auth-container">
         <div className="auth-card admin-card">
           <div className="auth-header">
-            <h1>🔐 Admin Registration</h1>
+            <div className="auth-logo admin-logo">🛡️</div>
+            <h1>Admin Registration</h1>
             <p className="auth-subtitle">Create an administrator account</p>
           </div>
 
@@ -83,6 +86,7 @@ export default function AdminSignup() {
                 onChange={handleChange}
                 disabled={loading}
               />
+              {errors.fullName && <small className="error-text">{errors.fullName}</small>}
             </div>
 
             <div className="form-group">
@@ -96,6 +100,7 @@ export default function AdminSignup() {
                 onChange={handleChange}
                 disabled={loading}
               />
+              {errors.email && <small className="error-text">{errors.email}</small>}
             </div>
 
             <div className="form-group">
@@ -115,9 +120,10 @@ export default function AdminSignup() {
                   className="toggle-password"
                   onClick={() => setShowPassword(!showPassword)}
                 >
-                  {showPassword ? '👁️' : '👁️‍🗨️'}
+                  {showPassword ? '🙈' : '👁️'}
                 </button>
               </div>
+              {errors.password && <small className="error-text">{errors.password}</small>}
             </div>
 
             <div className="form-group">
@@ -131,6 +137,7 @@ export default function AdminSignup() {
                 onChange={handleChange}
                 disabled={loading}
               />
+              {errors.confirmPassword && <small className="error-text">{errors.confirmPassword}</small>}
             </div>
 
             <div className="form-group">
@@ -145,30 +152,36 @@ export default function AdminSignup() {
                 disabled={loading}
               />
               <small className="form-hint">Contact system administrator for the code</small>
+              {errors.adminCode && <small className="error-text">{errors.adminCode}</small>}
             </div>
 
             <button
               type="submit"
-              className="admin-button"
+              className="auth-button admin-button"
               disabled={loading}
             >
-              {loading ? 'Creating Account...' : 'Create Admin Account'}
+              {loading ? (
+                <span className="loading-spinner">Creating Account...</span>
+              ) : (
+                'Create Admin Account'
+              )}
             </button>
           </form>
 
-          <div className="auth-divider">OR</div>
+          <div className="auth-divider">
+            <span>ALREADY REGISTERED?</span>
+          </div>
 
-          <div className="auth-footer">
-            <p>Already have an admin account?</p>
-            <Link to={ROUTES.ADMIN_LOGIN} className="auth-link-secondary">
+          <div className="auth-links">
+            <Link to={ROUTES.ADMIN_LOGIN} className="auth-link">
               Admin Login
             </Link>
           </div>
 
-          <div className="auth-footer" style={{ marginTop: '1rem' }}>
+          <div className="auth-footer">
             <p>Are you a student?</p>
             <Link to={ROUTES.STUDENT_SIGNUP} className="auth-link-secondary">
-              Student Signup
+              Student Signup →
             </Link>
           </div>
         </div>

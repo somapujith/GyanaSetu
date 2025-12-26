@@ -81,143 +81,157 @@ export default function StudentSignup() {
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-background">
-        <Silk speed={5} scale={1} color="#7B7481" noiseIntensity={1.5} rotation={0} />
+    <div className="auth-page student-auth-page">
+      <div className="auth-background student-background">
+        <div className="floating-shapes">
+          <div className="shape shape-1"></div>
+          <div className="shape shape-2"></div>
+          <div className="shape shape-3"></div>
+          <div className="shape shape-4"></div>
+        </div>
       </div>
       <div className="auth-container">
-      <div className="auth-card">
-        <div className="auth-header">
-          <h1>Join GyanaSetu</h1>
-          <p className="auth-subtitle">Create your student account</p>
-        </div>
-
-        {authError && <div className="error-message">{authError}</div>}
-
-        <form onSubmit={handleSubmit} className="auth-form">
-          <div className="form-group">
-            <label htmlFor="fullName">Full Name</label>
-            <input
-              id="fullName"
-              name="fullName"
-              type="text"
-              placeholder="Your full name"
-              value={formData.fullName}
-              onChange={handleChange}
-              disabled={loading}
-            />
-            {errors.fullName && <small className="error-text">{errors.fullName}</small>}
+        <div className="auth-card">
+          <div className="auth-header">
+            <div className="auth-logo">📚</div>
+            <h1>Join GyanaSetu</h1>
+            <p className="auth-subtitle">Create your student account</p>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="email">College Email</label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="your.name@college.edu"
-              value={formData.email}
-              onChange={handleChange}
-              disabled={loading}
-            />
-            {errors.email && <small className="error-text">{errors.email}</small>}
-          </div>
+          {authError && <div className="error-message">{authError}</div>}
 
-          <div className="form-group">
-            <label htmlFor="college">College</label>
-            <select
-              id="college"
-              name="college"
-              value={formData.college}
-              onChange={handleChange}
-              disabled={loading}
-            >
-              <option value="">Select your college</option>
-              {COLLEGES.map((col) => (
-                <option key={col} value={col}>
-                  {col}
-                </option>
-              ))}
-            </select>
-            {errors.college && <small className="error-text">{errors.college}</small>}
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="rollNo">Roll Number</label>
-            <input
-              id="rollNo"
-              name="rollNo"
-              type="text"
-              placeholder="Your roll number"
-              value={formData.rollNo}
-              onChange={handleChange}
-              disabled={loading}
-            />
-            {errors.rollNo && <small className="error-text">{errors.rollNo}</small>}
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <div className="password-input-wrapper">
+          <form onSubmit={handleSubmit} className="auth-form">
+            <div className="form-group">
+              <label htmlFor="fullName">Full Name</label>
               <input
-                id="password"
-                name="password"
-                type={showPassword ? 'text' : 'password'}
-                placeholder="At least 6 characters"
-                value={formData.password}
+                id="fullName"
+                name="fullName"
+                type="text"
+                placeholder="Your full name"
+                value={formData.fullName}
                 onChange={handleChange}
                 disabled={loading}
               />
-              <button
-                type="button"
-                className="toggle-password"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? '👁️' : '👁️‍🗨️'}
-              </button>
+              {errors.fullName && <small className="error-text">{errors.fullName}</small>}
             </div>
-            {errors.password && <small className="error-text">{errors.password}</small>}
-          </div>
 
-          <div className="form-group">
-            <label htmlFor="confirmPassword">Confirm Password</label>
-            <input
-              id="confirmPassword"
-              name="confirmPassword"
-              type={showPassword ? 'text' : 'password'}
-              placeholder="Confirm your password"
-              value={formData.confirmPassword}
-              onChange={handleChange}
+            <div className="form-group">
+              <label htmlFor="email">College Email</label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="your.name@college.edu"
+                value={formData.email}
+                onChange={handleChange}
+                disabled={loading}
+              />
+              {errors.email && <small className="error-text">{errors.email}</small>}
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="college">College</label>
+                <select
+                  id="college"
+                  name="college"
+                  value={formData.college}
+                  onChange={handleChange}
+                  disabled={loading}
+                >
+                  <option value="">Select college</option>
+                  {COLLEGES.map((col) => (
+                    <option key={col} value={col}>
+                      {col}
+                    </option>
+                  ))}
+                </select>
+                {errors.college && <small className="error-text">{errors.college}</small>}
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="rollNo">Roll Number</label>
+                <input
+                  id="rollNo"
+                  name="rollNo"
+                  type="text"
+                  placeholder="Roll number"
+                  value={formData.rollNo}
+                  onChange={handleChange}
+                  disabled={loading}
+                />
+                {errors.rollNo && <small className="error-text">{errors.rollNo}</small>}
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="password">Password</label>
+              <div className="password-input-wrapper">
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="At least 6 characters"
+                  value={formData.password}
+                  onChange={handleChange}
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  className="toggle-password"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? '🙈' : '👁️'}
+                </button>
+              </div>
+              {errors.password && <small className="error-text">{errors.password}</small>}
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="confirmPassword">Confirm Password</label>
+              <input
+                id="confirmPassword"
+                name="confirmPassword"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Confirm your password"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                disabled={loading}
+              />
+              {errors.confirmPassword && <small className="error-text">{errors.confirmPassword}</small>}
+            </div>
+
+            <button
+              type="submit"
+              className="auth-button"
               disabled={loading}
-            />
-            {errors.confirmPassword && <small className="error-text">{errors.confirmPassword}</small>}
+            >
+              {loading ? (
+                <span className="loading-spinner">Creating Account...</span>
+              ) : (
+                'Sign Up as Student'
+              )}
+            </button>
+          </form>
+
+          <div className="auth-divider">
+            <span>ALREADY HAVE AN ACCOUNT?</span>
           </div>
 
-          <button
-            type="submit"
-            className="auth-button"
-            disabled={loading}
-          >
-            {loading ? 'Creating Account...' : 'Sign Up as Student'}
-          </button>
-        </form>
+          <div className="auth-links">
+            <Link to={ROUTES.STUDENT_LOGIN} className="auth-link">
+              Login as Student
+            </Link>
+          </div>
 
-        <div className="auth-divider">ALREADY HAVE AN ACCOUNT?</div>
-
-        <div className="auth-links">
-          <Link to={ROUTES.STUDENT_LOGIN} className="auth-link">
-            Login as Student
-          </Link>
-        </div>
-
-        <div className="auth-footer">
-          <p>Looking for admin access?</p>
-          <Link to={ROUTES.ADMIN_LOGIN} className="auth-link-secondary">
-            Admin Login
-          </Link>
+          <div className="auth-footer">
+            <p>Looking for admin access?</p>
+            <Link to={ROUTES.ADMIN_LOGIN} className="auth-link-secondary">
+              Admin Login →
+            </Link>
+          </div>
         </div>
       </div>
-    </div>
     </div>
   );
 }

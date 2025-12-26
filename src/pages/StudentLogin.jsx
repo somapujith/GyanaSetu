@@ -4,7 +4,6 @@ import { useAuthStore } from '../store/authStore';
 import { ROUTES } from '../constants/routes';
 import '../styles/auth.css';
 
-
 export default function StudentLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -29,77 +28,90 @@ export default function StudentLogin() {
   };
 
   return (
-    <div className="auth-page">
-
+    <div className="auth-page student-auth-page">
+      <div className="auth-background student-background">
+        <div className="floating-shapes">
+          <div className="shape shape-1"></div>
+          <div className="shape shape-2"></div>
+          <div className="shape shape-3"></div>
+          <div className="shape shape-4"></div>
+        </div>
+      </div>
       <div className="auth-container">
         <div className="auth-card">
           <div className="auth-header">
+            <div className="auth-logo">🎓</div>
             <h1>Student Login</h1>
             <p className="auth-subtitle">Access your resources and connect with peers</p>
           </div>
 
-        {error && <div className="error-message">{error}</div>}
+          {error && <div className="error-message">{error}</div>}
 
-        <form onSubmit={handleSubmit} className="auth-form">
-          <div className="form-group">
-            <label htmlFor="email">College Email</label>
-            <input
-              id="email"
-              type="email"
-              placeholder="your.name@college.edu"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={loading}
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <div className="password-input-wrapper">
+          <form onSubmit={handleSubmit} className="auth-form">
+            <div className="form-group">
+              <label htmlFor="email">College Email</label>
               <input
-                id="password"
-                type={showPassword ? 'text' : 'password'}
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                id="email"
+                type="email"
+                placeholder="your.name@college.edu"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 disabled={loading}
               />
-              <button
-                type="button"
-                className="toggle-password"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? '👁️' : '👁️‍🗨️'}
-              </button>
             </div>
+
+            <div className="form-group">
+              <label htmlFor="password">Password</label>
+              <div className="password-input-wrapper">
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  className="toggle-password"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? '🙈' : '👁️'}
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className="auth-button"
+              disabled={loading}
+            >
+              {loading ? (
+                <span className="loading-spinner">Logging in...</span>
+              ) : (
+                'Login as Student'
+              )}
+            </button>
+          </form>
+
+          <div className="auth-divider">
+            <span>NEW TO GYANASETU?</span>
           </div>
 
-          <button
-            type="submit"
-            className="auth-button"
-            disabled={loading}
-          >
-            {loading ? 'Logging in...' : 'Login as Student'}
-          </button>
-        </form>
+          <div className="auth-links">
+            <Link to={ROUTES.STUDENT_SIGNUP} className="auth-link">
+              Create Student Account
+            </Link>
+          </div>
 
-        <div className="auth-divider">OR</div>
-
-        <div className="auth-links">
-          <p>New to GyanaSetu?</p>
-          <Link to={ROUTES.STUDENT_SIGNUP} className="auth-link">
-            Sign up as Student
-          </Link>
-        </div>
-
-        <div className="auth-footer">
-          <p>Are you an admin?</p>
-          <Link to={ROUTES.ADMIN_LOGIN} className="auth-link-secondary">
-            Admin Login
-          </Link>
+          <div className="auth-footer">
+            <p>Are you an admin?</p>
+            <Link to={ROUTES.ADMIN_LOGIN} className="auth-link-secondary">
+              Admin Login →
+            </Link>
+          </div>
         </div>
       </div>
-    </div>
     </div>
   );
 }

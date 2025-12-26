@@ -21,7 +21,6 @@ export default function AdminLogin() {
       return;
     }
 
-    // Validate admin code (in production, verify on backend)
     if (adminCode !== 'ADMIN2025') {
       alert('Invalid admin code');
       return;
@@ -38,90 +37,97 @@ export default function AdminLogin() {
   return (
     <div className="auth-page admin-auth-page">
       <div className="auth-background admin-background">
-        <div className="admin-bg-pattern"></div>
+        <div className="admin-grid-pattern"></div>
+        <div className="admin-glow"></div>
       </div>
       <div className="auth-container">
-      <div className="auth-card admin-card">
-        <div className="auth-header">
-          <h1>🔐 Admin Login</h1>
-          <p className="auth-subtitle">Manage platform resources and users</p>
-        </div>
-
-        {error && <div className="error-message">{error}</div>}
-
-        <form onSubmit={handleSubmit} className="auth-form">
-          <div className="form-group">
-            <label htmlFor="email">Admin Email</label>
-            <input
-              id="email"
-              type="email"
-              placeholder="admin@gyanasetu.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={loading}
-            />
+        <div className="auth-card admin-card">
+          <div className="auth-header">
+            <div className="auth-logo admin-logo">🔐</div>
+            <h1>Admin Login</h1>
+            <p className="auth-subtitle">Manage platform resources and users</p>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <div className="password-input-wrapper">
+          {error && <div className="error-message">{error}</div>}
+
+          <form onSubmit={handleSubmit} className="auth-form">
+            <div className="form-group">
+              <label htmlFor="email">Admin Email</label>
               <input
-                id="password"
-                type={showPassword ? 'text' : 'password'}
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                id="email"
+                type="email"
+                placeholder="admin@gyanasetu.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 disabled={loading}
               />
-              <button
-                type="button"
-                className="toggle-password"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? '👁️' : '👁️‍🗨️'}
-              </button>
             </div>
-          </div>
 
-          <div className="form-group">
-            <label htmlFor="adminCode">Admin Code</label>
-            <input
-              id="adminCode"
-              type="password"
-              placeholder="Enter admin code"
-              value={adminCode}
-              onChange={(e) => setAdminCode(e.target.value)}
+            <div className="form-group">
+              <label htmlFor="password">Password</label>
+              <div className="password-input-wrapper">
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  className="toggle-password"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? '🙈' : '👁️'}
+                </button>
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="adminCode">Admin Code</label>
+              <input
+                id="adminCode"
+                type="password"
+                placeholder="Enter admin authorization code"
+                value={adminCode}
+                onChange={(e) => setAdminCode(e.target.value)}
+                disabled={loading}
+              />
+              <small className="form-hint">Contact system administrator for the code</small>
+            </div>
+
+            <button
+              type="submit"
+              className="auth-button admin-button"
               disabled={loading}
-            />
-            <small className="form-hint">Check your email for admin code</small>
+            >
+              {loading ? (
+                <span className="loading-spinner">Verifying...</span>
+              ) : (
+                'Login as Admin'
+              )}
+            </button>
+          </form>
+
+          <div className="auth-divider">
+            <span>NEED AN ACCOUNT?</span>
           </div>
 
-          <button
-            type="submit"
-            className="admin-button"
-            disabled={loading}
-          >
-            {loading ? 'Verifying...' : 'Login as Admin'}
-          </button>
-        </form>
+          <div className="auth-links">
+            <Link to={ROUTES.ADMIN_SIGNUP} className="auth-link">
+              Register as Admin
+            </Link>
+          </div>
 
-        <div className="auth-divider">OR</div>
-
-        <div className="auth-footer">
-          <p>Need an admin account?</p>
-          <Link to={ROUTES.ADMIN_SIGNUP} className="auth-link-secondary">
-            Register as Admin
-          </Link>
-        </div>
-
-        <div className="auth-footer" style={{ marginTop: '1rem' }}>
-          <p>Are you a student?</p>
-          <Link to={ROUTES.STUDENT_LOGIN} className="auth-link-secondary">
-            Student Login
-          </Link>
+          <div className="auth-footer">
+            <p>Are you a student?</p>
+            <Link to={ROUTES.STUDENT_LOGIN} className="auth-link-secondary">
+              Student Login →
+            </Link>
+          </div>
         </div>
       </div>
-    </div>
     </div>
   );
 }
