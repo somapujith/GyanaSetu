@@ -53,12 +53,6 @@ const ResourceCard = ({ resource, onPreview }) => {
     other: '📦',
   };
 
-  const conditionLabels = {
-    excellent: '🌟 Excellent',
-    good: '✅ Good',
-    fair: '📖 Fair',
-  };
-
   const handleCardClick = () => {
     // On mobile, directly open Google Drive link if available
     if (isMobile && resource.driveLink) {
@@ -127,7 +121,6 @@ const ResourceCard = ({ resource, onPreview }) => {
           <button className="btn-get-resource" onClick={handleViewDetails}>
             <ion-icon name="hand-right-outline"></ion-icon>
             Get Resource
-          </button>
           </button>
         </div>
       </div>
