@@ -102,7 +102,6 @@ export default function StudentDashboard() {
 
   // Navigation handlers
   const handleGoHome = () => navigate(ROUTES.HOME);
-  const handleGoToBrowse = () => navigate(ROUTES.BROWSE_RESOURCES);
   const handleGoToFavorites = () => navigate(ROUTES.MY_FAVORITES);
   const handleGoToRequests = () => navigate(ROUTES.MY_REQUESTS);
   const handleGoToProfile = () => navigate(ROUTES.PROFILE);
@@ -121,10 +120,6 @@ export default function StudentDashboard() {
           <button className="nav-link active" onClick={() => setMobileMenuOpen(false)}>
             <ion-icon name="grid-outline"></ion-icon>
             Dashboard
-          </button>
-          <button className="nav-link" onClick={handleGoToBrowse}>
-            <ion-icon name="search-outline"></ion-icon>
-            Browse
           </button>
           <button className="nav-link" onClick={handleGoToFavorites}>
             <ion-icon name="bookmark-outline"></ion-icon>

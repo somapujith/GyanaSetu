@@ -18,7 +18,6 @@ export default function MyFavorites() {
   // Navigation functions
   const handleGoHome = () => navigate(ROUTES.HOME);
   const handleGoToDashboard = () => navigate(ROUTES.STUDENT_DASHBOARD);
-  const handleGoToBrowse = () => navigate(ROUTES.BROWSE_RESOURCES);
   const handleGoToRequests = () => navigate(ROUTES.MY_REQUESTS);
   const handleGoToProfile = () => navigate(ROUTES.PROFILE);
   const handleGoToPost = () => navigate(ROUTES.POST_RESOURCE);
@@ -75,10 +74,6 @@ export default function MyFavorites() {
             <ion-icon name="grid-outline"></ion-icon>
             Dashboard
           </button>
-          <button className="nav-link" onClick={handleGoToBrowse}>
-            <ion-icon name="search-outline"></ion-icon>
-            Browse
-          </button>
           <button className="nav-link active" onClick={() => setMobileMenuOpen(false)}>
             <ion-icon name="bookmark-outline"></ion-icon>
             Favorites
@@ -132,10 +127,10 @@ export default function MyFavorites() {
               <div className="empty-state">
                 <p>⭐ No favorites yet</p>
                 <p className="empty-subtitle">
-                  Browse resources and click the bookmark icon to save your favorites!
+                  Browse resources in Dashboard and click the bookmark icon to save your favorites!
                 </p>
-                <button className="btn-primary" onClick={handleGoToBrowse}>
-                  Browse Resources
+                <button className="btn-primary" onClick={handleGoToDashboard}>
+                  Go to Dashboard
                 </button>
               </div>
             ) : isLoading ? (

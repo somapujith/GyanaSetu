@@ -14,7 +14,6 @@ import StudentDashboard from './pages/StudentDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import PostResource from './pages/PostResource';
 import ResourceDetail from './pages/ResourceDetail';
-import BrowseResources from './pages/BrowseResources';
 import MyFavorites from './pages/MyFavorites';
 
 import Profile from './pages/Profile';
@@ -108,14 +107,6 @@ function App() {
           element={
             <ProtectedRoute requiredRole="student">
               <StudentDashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/browse"
-          element={
-            <ProtectedRoute requiredRole="student">
-              <BrowseResources />
             </ProtectedRoute>
           }
         />
