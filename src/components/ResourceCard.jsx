@@ -59,8 +59,18 @@ const ResourceCard = ({ resource, onPreview }) => {
     fair: '📖 Fair',
   };
 
+  const handleCardClick = () => {
+    // On mobile, directly open Google Drive link if available
+    if (isMobile && resource.driveLink) {
+      window.open(resource.driveLink, '_blank');
+    } else {
+      // Desktop behavior - show modal
+      handleViewDetails();
+    }
+  };
+
   return (
-    <div className="resource-card">
+    <div className="resource-card" onClick={handleCardClick} style={{ cursor: 'pointer' }}>
       <div className="card-image">
         {resource.image ? (
           <img src={resource.image} alt={resource.title} />
