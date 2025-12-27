@@ -12,8 +12,16 @@ const ResourceCard = ({ resource, onPreview }) => {
   const { showSuccess, showError } = useToastStore();
   
   const isFavorited = favorites.includes(resource.id);
+  const isMobile = window.innerWidth <= 768;
 
   const handleViewDetails = () => {
+    // On mobile, directly open Google Drive link if available
+    if (isMobile && resource.driveLink) {
+      window.open(resource.driveLink, '_blank');
+      return;
+    }
+    
+    // Desktop behavior - show modal
     if (onPreview) {
       onPreview();
     } else {
