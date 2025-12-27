@@ -8,7 +8,7 @@ import './ProfileSettings.css';
 
 export default function ProfilePassword() {
   const navigate = useNavigate();
-  const { changePassword } = useAuthStore();
+  const { user, changePassword } = useAuthStore();
   const { showSuccess, showError } = useToastStore();
   const [loading, setLoading] = useState(false);
   const [passwords, setPasswords] = useState({
@@ -118,7 +118,24 @@ export default function ProfilePassword() {
               <span className="notification-badge">2</span>
             </button>
             <button className="header-avatar" onClick={() => navigate(ROUTES.STUDENT_DASHBOARD)}>
-              <img src="https://via.placeholder.com/40" alt="User" />
+              {user?.photoURL ? (
+                <img src={user.photoURL} alt="User" />
+              ) : (
+                <div style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'white',
+                  fontWeight: '600',
+                  fontSize: '16px'
+                }}>
+                  {user?.email?.charAt(0).toUpperCase() || 'U'}
+                </div>
+              )}
             </button>
           </div>
         </header>

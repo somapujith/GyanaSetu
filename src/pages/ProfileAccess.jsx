@@ -86,18 +86,21 @@ export default function ProfileAccess() {
         reason: deleteReason || 'No reason provided'
       };
 
-      // Send log to backend
-      try {
-        await fetch('http://localhost:5001/log-account-deletion', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(deletionLog)
-        });
-      } catch (logError) {
-        console.error('Failed to log deletion:', logError);
-        // Continue with deletion even if logging fails
+      // Send log to backend (only if backend URL is configured)
+      const backendUrl = import.meta.env.VITE_BACKEND_URL;
+      if (backendUrl && !backendUrl.includes('localhost')) {
+        try {
+          await fetch(`${backendUrl}/log-account-deletion`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(deletionLog)
+          });
+        } catch (logError) {
+          console.error('Failed to log deletion:', logError);
+          // Continue with deletion even if logging fails
+        }
       }
 
       // Delete user's resources from Firestore
@@ -228,7 +231,24 @@ export default function ProfileAccess() {
               <span className="notification-badge">2</span>
             </button>
             <button className="header-avatar" onClick={() => navigate(ROUTES.STUDENT_DASHBOARD)}>
-              <img src="https://via.placeholder.com/40" alt="User" />
+              {user?.photoURL ? (
+                <img src={user.photoURL} alt="User" />
+              ) : (
+                <div style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'white',
+                  fontWeight: '600',
+                  fontSize: '16px'
+                }}>
+                  {user?.email?.charAt(0).toUpperCase() || 'U'}
+                </div>
+              )}
             </button>
           </div>
         </header>

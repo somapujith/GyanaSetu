@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../store/authStore';
 import { ROUTES } from '../constants/routes';
 import './Profile.css';
 import './ProfileSettings.css';
 
 export default function ProfileNotifications() {
   const navigate = useNavigate();
+  const { user } = useAuthStore();
   const [notifications, setNotifications] = useState({
     emailNotifications: true,
     pushNotifications: true,
@@ -68,7 +70,24 @@ export default function ProfileNotifications() {
               <span className="notification-badge">2</span>
             </button>
             <button className="header-avatar" onClick={() => navigate(ROUTES.STUDENT_DASHBOARD)}>
-              <img src="https://via.placeholder.com/40" alt="User" />
+              {user?.photoURL ? (
+                <img src={user.photoURL} alt="User" />
+              ) : (
+                <div style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'white',
+                  fontWeight: '600',
+                  fontSize: '16px'
+                }}>
+                  {user?.email?.charAt(0).toUpperCase() || 'U'}
+                </div>
+              )}
             </button>
           </div>
         </header>

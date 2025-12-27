@@ -17,7 +17,14 @@ const app = express();
 
 // CORS - Allow your frontend
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:3000'],
+  origin: [
+    'http://localhost:5173', 
+    'http://localhost:5174', 
+    'http://localhost:5175', 
+    'http://localhost:3000',
+    'https://gyana-setu.vercel.app',
+    /\.vercel\.app$/  // Allow all Vercel preview deployments
+  ],
   methods: ['GET', 'POST', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
