@@ -268,6 +268,61 @@ app.get("/file/:fileId", async (req, res) => {
 });
 
 // ============================================
+// LOG ACCOUNT DELETION
+// ============================================
+app.post("/log-account-deletion", async (req, res) => {
+  try {
+    const { userId, email, name, deletedAt, reason } = req.body;
+    
+    console.log("📝 Account deletion log:");
+    console.log(`   User ID: ${userId}`);
+    console.log(`   Email: ${email}`);
+    console.log(`   Name: ${name}`);
+    console.log(`   Deleted At: ${deletedAt}`);
+    console.log(`   Reason: ${reason || 'Not specified'}`);
+    
+    // In production, you would:
+    // 1. Store this in a database
+    // 2. Send notification to admin
+    // 3. Archive user data
+    // 4. Comply with data retention policies
+    
+    // For now, we'll just log it
+    const logEntry = {
+      userId,
+      email,
+      name,
+      deletedAt,
+      reason: reason || 'Not specified',
+      timestamp: new Date().toISOString()
+    };
+    
+    // Append to a log file
+    const logPath = path.join(__dirname, 'deletion-logs.json');
+    let logs = [];
+    
+    if (fs.existsSync(logPath)) {
+      const fileContent = fs.readFileSync(logPath, 'utf8');
+      logs = JSON.parse(fileContent);
+    }
+    
+    logs.push(logEntry);
+    fs.writeFileSync(logPath, JSON.stringify(logs, null, 2));
+    
+    console.log("✅ Account deletion logged successfully");
+    
+    res.json({ 
+      success: true,
+      message: "Account deletion logged successfully"
+    });
+
+  } catch (err) {
+    console.error("❌ Log deletion error:", err.message);
+    res.status(500).json({ error: "Failed to log account deletion", message: err.message });
+  }
+});
+
+// ============================================
 // START SERVER
 // ============================================
 const PORT = process.env.PORT || 5000;

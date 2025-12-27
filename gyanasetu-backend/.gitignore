@@ -14,6 +14,9 @@ service-account.json
 uploads/*
 !uploads/.gitkeep
 
+# Account deletion logs (sensitive data)
+deletion-logs.json
+
 # Logs
 *.log
 npm-debug.log*

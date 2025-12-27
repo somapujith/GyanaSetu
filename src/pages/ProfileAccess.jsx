@@ -3,14 +3,20 @@ import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../constants/routes';
 import { useAuthStore } from '../store/authStore';
 import { useToastStore } from '../store/toastStore';
+import { deleteUser } from 'firebase/auth';
+import { doc, deleteDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { auth, db } from '../config/firebase';
 import './Profile.css';
 import './ProfileSettings.css';
 
 export default function ProfileAccess() {
   const navigate = useNavigate();
-  const { logout } = useAuthStore();
+  const { user, logout } = useAuthStore();
   const { showToast } = useToastStore();
   const [loading, setLoading] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteReason, setDeleteReason] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
   
   // Current session - in a real app this would come from Firebase Auth
   const [sessions, setSessions] = useState([
@@ -55,6 +61,121 @@ export default function ProfileAccess() {
       showToast('Failed to logout: ' + error.message, 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteAccount = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDeleteAccount = async () => {
+    if (!user) {
+      showToast('No user logged in', 'error');
+      return;
+    }
+
+    setIsDeleting(true);
+    
+    try {
+      // Log account deletion to backend
+      const deletionLog = {
+        userId: user.uid,
+        email: user.email,
+        name: user.displayName || user.email,
+        deletedAt: new Date().toISOString(),
+        reason: deleteReason || 'No reason provided'
+      };
+
+      // Send log to backend
+      try {
+        await fetch('http://localhost:5001/log-account-deletion', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(deletionLog)
+        });
+      } catch (logError) {
+        console.error('Failed to log deletion:', logError);
+        // Continue with deletion even if logging fails
+      }
+
+      // Delete user's resources from Firestore
+      const resourcesRef = collection(db, 'resources');
+      const userResourcesQuery = query(resourcesRef, where('uploadedBy', '==', user.uid));
+      const userResourcesSnapshot = await getDocs(userResourcesQuery);
+      
+      const deletePromises = userResourcesSnapshot.docs.map(docSnapshot => 
+        deleteDoc(doc(db, 'resources', docSnapshot.id))
+      );
+      await Promise.all(deletePromises);
+
+      // Delete user document from Firestore
+      await deleteDoc(doc(db, 'users', user.uid));
+
+      // Delete Firebase Auth account
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        await deleteUser(currentUser);
+      }
+
+      showToast('Account deleted successfully', 'success');
+      navigate(ROUTES.HOME);
+    } catch (error) {
+      console.error('Delete account error:', error);
+      
+      if (error.code === 'auth/requires-recent-login') {
+        showToast('Please log in again before deleting your account', 'error');
+        await logout();
+        navigate(ROUTES.LOGIN);
+      } else {
+        showToast('Failed to delete account: ' + error.message, 'error');
+      }
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteConfirm(false);
+    }
+  };
+
+  const handleDownloadData = async () => {
+    if (!user) {
+      showToast('No user logged in', 'error');
+      return;
+    }
+
+    try {
+      // Fetch user data
+      const resourcesRef = collection(db, 'resources');
+      const userResourcesQuery = query(resourcesRef, where('uploadedBy', '==', user.uid));
+      const userResourcesSnapshot = await getDocs(userResourcesQuery);
+      
+      const userData = {
+        profile: {
+          email: user.email,
+          name: user.displayName,
+          uid: user.uid,
+          createdAt: user.metadata.creationTime
+        },
+        resources: userResourcesSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }))
+      };
+
+      // Create and download JSON file
+      const dataStr = JSON.stringify(userData, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `gyanasetu-data-${user.uid}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+
+      showToast('Data downloaded successfully', 'success');
+    } catch (error) {
+      console.error('Download data error:', error);
+      showToast('Failed to download data: ' + error.message, 'error');
     }
   };
 
@@ -176,11 +297,11 @@ export default function ProfileAccess() {
               </div>
               <div className="card-content">
                 <div className="account-actions">
-                  <button className="action-btn">
+                  <button className="action-btn" onClick={handleDownloadData}>
                     <ion-icon name="download-outline"></ion-icon>
                     Download your data
                   </button>
-                  <button className="action-btn danger">
+                  <button className="action-btn danger" onClick={handleDeleteAccount}>
                     <ion-icon name="trash-outline"></ion-icon>
                     Delete account
                   </button>
@@ -190,6 +311,57 @@ export default function ProfileAccess() {
           </div>
         </div>
       </main>
+
+      {/* Delete Account Confirmation Dialog */}
+      {showDeleteConfirm && (
+        <div className="modal-overlay" onClick={() => !isDeleting && setShowDeleteConfirm(false)}>
+          <div className="confirmation-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Delete Account</h2>
+              <button 
+                className="modal-close" 
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isDeleting}
+              >
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="warning-box">
+                <ion-icon name="warning-outline"></ion-icon>
+                <p><strong>Warning:</strong> This action cannot be undone. All your data, resources, and account information will be permanently deleted.</p>
+              </div>
+              <div className="form-group">
+                <label htmlFor="deleteReason">Reason for leaving (optional):</label>
+                <textarea
+                  id="deleteReason"
+                  value={deleteReason}
+                  onChange={(e) => setDeleteReason(e.target.value)}
+                  placeholder="Help us improve by telling us why you're leaving..."
+                  rows={4}
+                  disabled={isDeleting}
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button 
+                className="btn-cancel" 
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isDeleting}
+              >
+                Cancel
+              </button>
+              <button 
+                className="btn-delete" 
+                onClick={confirmDeleteAccount}
+                disabled={isDeleting}
+              >
+                {isDeleting ? 'Deleting...' : 'Delete My Account'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
