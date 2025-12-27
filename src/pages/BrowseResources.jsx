@@ -7,6 +7,7 @@ import ResourcePreviewModal from '../components/ResourcePreviewModal';
 import { ROUTES } from '../constants/routes';
 import { CATEGORY_LABELS, FILTER_ALL, RESOURCE_CATEGORIES } from '../constants/resources';
 import { DEPARTMENTS } from '../constants/departments';
+import { YEARS } from '../constants/years';
 import '../styles/student-dashboard.css';
 
 export default function BrowseResources() {
@@ -18,7 +19,7 @@ export default function BrowseResources() {
   // Students can only browse resources from their own college
   const userCollege = userProfile?.college;
   const [selectedDepartment, setSelectedDepartment] = useState(FILTER_ALL);
-  const [selectedCondition, setSelectedCondition] = useState(FILTER_ALL);
+  const [selectedYear, setSelectedYear] = useState(FILTER_ALL);
   const [sortBy, setSortBy] = useState('newest');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedResource, setSelectedResource] = useState(null);
@@ -66,7 +67,6 @@ export default function BrowseResources() {
 
   // Students only see their own college - no dropdown needed
   const categories = RESOURCE_CATEGORIES;
-  const conditions = [FILTER_ALL, 'excellent', 'good', 'fair', 'used'];
 
   // Filtered and sorted resources
   const filteredResources = useMemo(() => {
@@ -98,9 +98,9 @@ export default function BrowseResources() {
       filtered = filtered.filter((r) => r.department === selectedDepartment);
     }
 
-    // Apply condition filter
-    if (selectedCondition !== FILTER_ALL) {
-      filtered = filtered.filter((r) => r.condition === selectedCondition);
+    // Apply year filter
+    if (selectedYear !== FILTER_ALL) {
+      filtered = filtered.filter((r) => r.year === selectedYear);
     }
 
     // Apply sorting
@@ -122,13 +122,13 @@ export default function BrowseResources() {
     }
 
     return filtered;
-  }, [resources, searchTerm, selectedCategory, selectedDepartment, selectedCondition, sortBy]);
+  }, [resources, searchTerm, selectedCategory, selectedDepartment, selectedYear, sortBy]);
 
   // Reset filters
   const resetFilters = () => {
     setSelectedCategory(FILTER_ALL);
     setSelectedDepartment(FILTER_ALL);
-    setSelectedCondition(FILTER_ALL);
+    setSelectedYear(FILTER_ALL);
     setSortBy('newest');
     setSearchTerm('');
   };
@@ -265,15 +265,16 @@ export default function BrowseResources() {
           </div>
 
           <div className="filter-section">
-            <h4>Condition</h4>
+            <h4>Year</h4>
             <select
-              value={selectedCondition}
-              onChange={(e) => setSelectedCondition(e.target.value)}
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
               className="filter-select"
             >
-              {conditions.map((cond) => (
-                <option key={cond} value={cond}>
-                  {cond === FILTER_ALL ? 'All Conditions' : cond.charAt(0).toUpperCase() + cond.slice(1)}
+              <option value={FILTER_ALL}>All Years</option>
+              {YEARS.map((year) => (
+                <option key={year} value={year}>
+                  {year}
                 </option>
               ))}
             </select>

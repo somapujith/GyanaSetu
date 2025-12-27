@@ -33,6 +33,7 @@ import { ROUTES } from '../constants/routes';
 import { CATEGORY_LABELS, RESOURCE_CATEGORIES } from '../constants/resources';
 import { COLLEGES } from '../constants/colleges';
 import { DEPARTMENTS } from '../constants/departments';
+import { YEARS } from '../constants/years';
 import '../styles/admin-dashboard.css';
 
 export default function AdminDashboard() {
@@ -50,6 +51,18 @@ export default function AdminDashboard() {
   const [userSearchTerm, setUserSearchTerm] = useState('');
   const [userCollegeFilter, setUserCollegeFilter] = useState('');
   const [userRoleFilter, setUserRoleFilter] = useState('');
+  
+  // Resource Filters
+  const [resourceCollegeFilter, setResourceCollegeFilter] = useState('');
+  const [resourceDepartmentFilter, setResourceDepartmentFilter] = useState('');
+  const [resourceYearFilter, setResourceYearFilter] = useState('');
+  const [resourceCategoryFilter, setResourceCategoryFilter] = useState('');
+  
+  // Approval Filters
+  const [approvalCollegeFilter, setApprovalCollegeFilter] = useState('');
+  const [approvalDepartmentFilter, setApprovalDepartmentFilter] = useState('');
+  const [approvalYearFilter, setApprovalYearFilter] = useState('');
+  const [approvalCategoryFilter, setApprovalCategoryFilter] = useState('');
   
   // Bulk Selection State
   const [selectedResources, setSelectedResources] = useState([]);
@@ -184,6 +197,30 @@ export default function AdminDashboard() {
       return matchesSearch && matchesCollege && matchesRole;
     });
   }, [users, userSearchTerm, userCollegeFilter, userRoleFilter]);
+
+  // Filtered Resources (for Resources Tab)
+  const filteredResources = useMemo(() => {
+    return resources.filter(r => {
+      if (r.status === 'pending') return false; // Exclude pending
+      const matchesCollege = !resourceCollegeFilter || r.college === resourceCollegeFilter;
+      const matchesDepartment = !resourceDepartmentFilter || r.department === resourceDepartmentFilter;
+      const matchesYear = !resourceYearFilter || r.year === resourceYearFilter;
+      const matchesCategory = !resourceCategoryFilter || r.category === resourceCategoryFilter;
+      return matchesCollege && matchesDepartment && matchesYear && matchesCategory;
+    });
+  }, [resources, resourceCollegeFilter, resourceDepartmentFilter, resourceYearFilter, resourceCategoryFilter]);
+
+  // Filtered Pending Resources (for Approvals Tab)
+  const filteredPendingResources = useMemo(() => {
+    return resources.filter(r => {
+      if (r.status !== 'pending') return false; // Only pending
+      const matchesCollege = !approvalCollegeFilter || r.college === approvalCollegeFilter;
+      const matchesDepartment = !approvalDepartmentFilter || r.department === approvalDepartmentFilter;
+      const matchesYear = !approvalYearFilter || r.year === approvalYearFilter;
+      const matchesCategory = !approvalCategoryFilter || r.category === approvalCategoryFilter;
+      return matchesCollege && matchesDepartment && matchesYear && matchesCategory;
+    });
+  }, [resources, approvalCollegeFilter, approvalDepartmentFilter, approvalYearFilter, approvalCategoryFilter]);
 
   // Handlers
   const handleLogout = async () => {
@@ -1068,14 +1105,44 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
+              {/* Filters */}
+              <div className="filters-bar" style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
+                <select value={resourceCollegeFilter} onChange={e => setResourceCollegeFilter(e.target.value)} style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #ddd' }}>
+                  <option value="">All Colleges</option>
+                  {collegesList.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+                <select value={resourceDepartmentFilter} onChange={e => setResourceDepartmentFilter(e.target.value)} style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #ddd' }}>
+                  <option value="">All Departments</option>
+                  {departmentsList.map(d => <option key={d} value={d}>{d}</option>)}
+                </select>
+                <select value={resourceYearFilter} onChange={e => setResourceYearFilter(e.target.value)} style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #ddd' }}>
+                  <option value="">All Years</option>
+                  {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
+                </select>
+                <select value={resourceCategoryFilter} onChange={e => setResourceCategoryFilter(e.target.value)} style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #ddd' }}>
+                  <option value="">All Categories</option>
+                  {RESOURCE_CATEGORIES.filter(c => c !== 'all').map(c => <option key={c} value={c}>{CATEGORY_LABELS[c] || c}</option>)}
+                </select>
+                {(resourceCollegeFilter || resourceDepartmentFilter || resourceYearFilter || resourceCategoryFilter) && (
+                  <button onClick={() => {
+                    setResourceCollegeFilter('');
+                    setResourceDepartmentFilter('');
+                    setResourceYearFilter('');
+                    setResourceCategoryFilter('');
+                  }} style={{ padding: '8px 12px', borderRadius: '6px', background: '#f3f4f6', border: 'none', cursor: 'pointer' }}>
+                    Clear Filters
+                  </button>
+                )}
+              </div>
+
               <div className="resources-list">
-                {resources.filter(r => r.status !== 'pending').length === 0 ? (
+                {filteredResources.length === 0 ? (
                   <div className="empty-state">
-                    <p>📚 No resources yet</p>
+                    <p>📚 No resources found</p>
                     <button className="btn-primary" onClick={() => setActiveTab('add-resource')}>Add First Resource</button>
                   </div>
                 ) : (
-                  resources.filter(r => r.status !== 'pending').map(resource => (
+                  filteredResources.map(resource => (
                     <div key={resource.id} className={`resource-item ${selectedResources.includes(resource.id) ? 'selected' : ''}`}>
                       <input
                         type="checkbox"
@@ -1186,13 +1253,43 @@ export default function AdminDashboard() {
                 )}
               </div>
 
+              {/* Filters */}
+              <div className="filters-bar" style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
+                <select value={approvalCollegeFilter} onChange={e => setApprovalCollegeFilter(e.target.value)} style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #ddd' }}>
+                  <option value="">All Colleges</option>
+                  {collegesList.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+                <select value={approvalDepartmentFilter} onChange={e => setApprovalDepartmentFilter(e.target.value)} style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #ddd' }}>
+                  <option value="">All Departments</option>
+                  {departmentsList.map(d => <option key={d} value={d}>{d}</option>)}
+                </select>
+                <select value={approvalYearFilter} onChange={e => setApprovalYearFilter(e.target.value)} style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #ddd' }}>
+                  <option value="">All Years</option>
+                  {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
+                </select>
+                <select value={approvalCategoryFilter} onChange={e => setApprovalCategoryFilter(e.target.value)} style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #ddd' }}>
+                  <option value="">All Categories</option>
+                  {RESOURCE_CATEGORIES.filter(c => c !== 'all').map(c => <option key={c} value={c}>{CATEGORY_LABELS[c] || c}</option>)}
+                </select>
+                {(approvalCollegeFilter || approvalDepartmentFilter || approvalYearFilter || approvalCategoryFilter) && (
+                  <button onClick={() => {
+                    setApprovalCollegeFilter('');
+                    setApprovalDepartmentFilter('');
+                    setApprovalYearFilter('');
+                    setApprovalCategoryFilter('');
+                  }} style={{ padding: '8px 12px', borderRadius: '6px', background: '#f3f4f6', border: 'none', cursor: 'pointer' }}>
+                    Clear Filters
+                  </button>
+                )}
+              </div>
+
               <div className="resources-list">
-                {resources.filter(r => r.status === 'pending').length === 0 ? (
+                {filteredPendingResources.length === 0 ? (
                   <div className="empty-state">
-                    <p>✨ No pending approvals</p>
+                    <p>✨ No pending approvals found</p>
                   </div>
                 ) : (
-                  resources.filter(r => r.status === 'pending').map(resource => (
+                  filteredPendingResources.map(resource => (
                     <div key={resource.id} className="resource-item pending-item">
                       <input
                         type="checkbox"

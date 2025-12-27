@@ -510,3 +510,31 @@
   min-width: 40px;
 }
 
+/* Category Input with Custom Option */
+.category-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.custom-category-input {
+  border: 2px solid #6366f1 !important;
+  background: #f8f9ff !important;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.custom-category-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+/* Drive Link Input */
+input[name="driveLink"] {
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  padding: 12px 16px;
+}
+

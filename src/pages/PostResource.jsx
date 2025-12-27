@@ -4,10 +4,12 @@ import { useAuthStore } from '../store/authStore';
 import { useResourceStore } from '../store/resourceStore';
 import useToastStore from '../store/toastStore';
 import { uploadResourceFile, formatFileSize, getFileType } from '../services/storage';
+import { getDriveUrls, extractDriveFileId, isValidDriveUrl } from '../services/driveService';
 import { ROUTES } from '../constants/routes';
 import { CATEGORY_LABELS, RESOURCE_CATEGORIES } from '../constants/resources';
 import { COLLEGES } from '../constants/colleges';
 import { DEPARTMENTS } from '../constants/departments';
+import { YEARS } from '../constants/years';
 import Loading from '../components/Loading';
 import '../styles/form.css';
 import '../styles/student-dashboard.css';
@@ -37,20 +39,12 @@ const PostResource = () => {
     title: '',
     description: '',
     category: 'books',
-    condition: 'good',
     college: '',
     department: '',
-    location: '',
-    availableFrom: '',
-    availableTo: '',
-    contactPreference: 'email',
-    terms: '',
-    tags: '',
+    year: '',
+    driveLink: '',
   });
 
-  const [file, setFile] = useState(null);
-  const [filePreview, setFilePreview] = useState(null);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const [uploading, setUploading] = useState(false);
   const [errors, setErrors] = useState({});
   const [charCount, setCharCount] = useState({ title: 0, description: 0 });
@@ -82,53 +76,7 @@ const PostResource = () => {
     }
   };
 
-  const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0];
-    if (!selectedFile) return;
 
-    // Validate file size (max 50MB)
-    const maxSize = 50 * 1024 * 1024;
-    if (selectedFile.size > maxSize) {
-      showError('File size must be less than 50MB');
-      return;
-    }
-
-    // Validate file type
-    const allowedTypes = [
-      'application/pdf',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'application/vnd.ms-powerpoint',
-      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-      'video/mp4',
-      'image/jpeg',
-      'image/png',
-    ];
-    
-    if (!allowedTypes.includes(selectedFile.type)) {
-      showError('Invalid file type. Allowed: PDF, DOC, DOCX, PPT, PPTX, MP4, JPG, PNG');
-      return;
-    }
-
-    setFile(selectedFile);
-    
-    // Create preview for images
-    if (selectedFile.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFilePreview(reader.result);
-      };
-      reader.readAsDataURL(selectedFile);
-    } else {
-      setFilePreview(null);
-    }
-  };
-
-  const removeFile = () => {
-    setFile(null);
-    setFilePreview(null);
-    setUploadProgress(0);
-  };
 
   const validateForm = () => {
     const newErrors = {};
@@ -145,13 +93,15 @@ const PostResource = () => {
     // Description validation
     if (!formData.description.trim()) {
       newErrors.description = 'Description is required';
-    } else if (formData.description.length < 20) {
-      newErrors.description = 'Please provide a more detailed description (min 20 characters)';
+    } else if (formData.description.length < 5) {
+      newErrors.description = 'Please provide a more detailed description (min 5 characters)';
     }
 
-    // File validation
-    if (!file) {
-      newErrors.file = 'Please upload a resource file';
+    // Google Drive link validation
+    if (!formData.driveLink.trim()) {
+      newErrors.driveLink = 'Google Drive link is required';
+    } else if (!isValidDriveUrl(formData.driveLink)) {
+      newErrors.driveLink = 'Please enter a valid Google Drive link';
     }
     
     // College validation
@@ -159,50 +109,8 @@ const PostResource = () => {
       newErrors.college = 'Please select your college';
     }
     
-    // Location validation
-    if (!formData.location.trim()) {
-      newErrors.location = 'Pickup location is required';
-    } else if (formData.location.length < 10) {
-      newErrors.location = 'Please provide a more specific location';
-    }
-    
-    // Date validation
-    if (!formData.availableFrom) {
-      newErrors.availableFrom = 'Start date is required';
-    } else {
-      const startDate = new Date(formData.availableFrom);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      if (startDate < today) {
-        newErrors.availableFrom = 'Start date cannot be in the past';
-      }
-    }
-    
-    // End date validation (if provided)
-    if (formData.availableTo) {
-      const startDate = new Date(formData.availableFrom);
-      const endDate = new Date(formData.availableTo);
-      if (endDate <= startDate) {
-        newErrors.availableTo = 'End date must be after start date';
-      }
-    }
-    
-    // Image URL validation (if provided)
-    if (formData.image && !isValidUrl(formData.image)) {
-      newErrors.image = 'Please enter a valid image URL';
-    }
-    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
-
-  const isValidUrl = (string) => {
-    try {
-      new URL(string);
-      return true;
-    } catch (_) {
-      return false;
-    }
   };
 
   const handleSubmit = async (e) => {
@@ -219,43 +127,35 @@ const PostResource = () => {
     setUploading(true);
     
     try {
-      // Upload file to Firebase Storage first
-      const fileUrl = await uploadResourceFile(file, user.uid, (progress) => {
-        setUploadProgress(progress);
-      });
+      // Extract Drive file ID and generate URLs
+      const fileId = extractDriveFileId(formData.driveLink);
+      const driveUrls = getDriveUrls(fileId);
       
       const resourceData = {
         title: formData.title.trim(),
         description: formData.description.trim(),
         category: formData.category,
-        condition: formData.condition,
         college: formData.college,
         department: formData.department,
-        location: formData.location.trim(),
-        availableFrom: formData.availableFrom,
-        availableTo: formData.availableTo || null,
-        image: formData.image.trim() || null,
-        contactPreference: formData.contactPreference,
-        terms: formData.terms.trim() || null,
-        fileUrl: fileUrl, // Add uploaded file URL
-        fileName: file.name,
-        fileSize: file.size,
-        fileType: getFileType(file.name),
+        year: formData.year || null,
+        driveLink: formData.driveLink.trim(),
+        fileUrl: driveUrls.viewUrl,
+        downloadUrl: driveUrls.downloadUrl,
+        embedUrl: driveUrls.embedUrl,
         userId: user.uid,
         userName: userProfile.fullName,
         userEmail: userProfile.email,
-        status: 'available',
+        status: 'pending',
       };
 
       await createResource(resourceData);
-      showSuccess('Resource posted successfully!');
+      showSuccess('Resource posted successfully and pending approval!');
       navigate(ROUTES.STUDENT_DASHBOARD);
     } catch (err) {
       console.error(err);
       showError(err.message || 'Failed to post resource. Please try again.');
     } finally {
       setUploading(false);
-      setUploadProgress(0);
     }
   };
 
@@ -370,83 +270,64 @@ const PostResource = () => {
               </div>
             </div>
 
-            {/* File Upload Section */}
+            {/* Google Drive Link Section */}
             <div className="form-group">
-              <label>Upload Resource File <span className="required">*</span></label>
-              <div className="file-upload-area">
-                {!file ? (
-                  <label htmlFor="file-input" className="file-upload-label">
-                    <ion-icon name="cloud-upload-outline"></ion-icon>
-                    <p>Click to upload or drag and drop</p>
-                    <span className="file-upload-hint">
-                      PDF, DOC, DOCX, PPT, PPTX, MP4, JPG, PNG (max 50MB)
-                    </span>
-                  </label>
-                ) : (
-                  <div className="file-preview">
-                    <div className="file-info">
-                      {filePreview ? (
-                        <img src={filePreview} alt="Preview" className="file-thumbnail" />
-                      ) : (
-                        <ion-icon name="document-outline" className="file-icon"></ion-icon>
-                      )}
-                      <div className="file-details">
-                        <p className="file-name">{file.name}</p>
-                        <p className="file-size">{formatFileSize(file.size)}</p>
-                      </div>
-                    </div>
-                    <button type="button" onClick={removeFile} className="remove-file-btn">
-                      <ion-icon name="close-circle"></ion-icon>
-                    </button>
-                  </div>
-                )}
-                <input
-                  id="file-input"
-                  type="file"
-                  onChange={handleFileChange}
-                  accept=".pdf,.doc,.docx,.ppt,.pptx,.mp4,.jpg,.jpeg,.png"
-                  style={{ display: 'none' }}
-                />
-              </div>
-              {errors.file && <span className="error">{errors.file}</span>}
-              {uploadProgress > 0 && uploadProgress < 100 && (
-                <div className="upload-progress">
-                  <div className="progress-bar">
-                    <div className="progress-fill" style={{ width: `${uploadProgress}%` }}></div>
-                  </div>
-                  <span className="progress-text">{uploadProgress}%</span>
-                </div>
-              )}
+              <label>🔗 Google Drive Link <span className="required">*</span></label>
+              <input
+                type="url"
+                name="driveLink"
+                value={formData.driveLink}
+                onChange={handleChange}
+                placeholder="Paste Google Drive file link here (e.g., https://drive.google.com/file/d/...)"
+                className={errors.driveLink ? 'input-error' : ''}
+              />
+              <span className="input-hint">
+                💡 Upload your file to Google Drive, make it viewable to anyone with the link, and paste the link here
+              </span>
+              {errors.driveLink && <span className="error">{errors.driveLink}</span>}
             </div>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label>Category <span className="required">*</span></label>
-                <select name="category" value={formData.category} onChange={handleChange}>
+            <div className="form-group">
+              <label>Category <span className="required">*</span></label>
+              <div className="category-input-wrapper">
+                <select
+                  name="category"
+                  value={RESOURCE_CATEGORIES.includes(formData.category) ? formData.category : 'custom'}
+                  onChange={(e) => {
+                    if (e.target.value === 'custom') {
+                      setFormData(prev => ({ ...prev, category: '' }));
+                    } else {
+                      handleChange(e);
+                    }
+                  }}
+                >
                   {categories.map((cat) => (
                     <option key={cat.value} value={cat.value}>
                       {cat.label}
                     </option>
                   ))}
+                  <option value="custom">+ Add Custom Category</option>
                 </select>
-              </div>
-
-              <div className="form-group">
-                <label>Condition</label>
-                <select name="condition" value={formData.condition} onChange={handleChange}>
-                  <option value="excellent">🌟 Excellent - Like new</option>
-                  <option value="good">✅ Good - Minor wear</option>
-                  <option value="fair">📖 Fair - Usable condition</option>
-                </select>
+                {!RESOURCE_CATEGORIES.includes(formData.category) && (
+                  <input
+                    type="text"
+                    name="category"
+                    value={formData.category}
+                    onChange={handleChange}
+                    placeholder="Enter custom category"
+                    className="custom-category-input"
+                    style={{ marginTop: '8px' }}
+                  />
+                )}
               </div>
             </div>
           </div>
 
-          {/* College & Location Section */}
+          {/* College & Department Section */}
           <div className="form-section">
             <h3 className="section-title">
-              <ion-icon name="location-outline"></ion-icon>
-              College & Location
+              <ion-icon name="school-outline"></ion-icon>
+              College & Department
             </h3>
             
             <div className="form-row">
@@ -482,118 +363,22 @@ const PostResource = () => {
             </div>
 
             <div className="form-group">
-              <label>Pickup Location <span className="required">*</span></label>
-              <input
-                type="text"
-                name="location"
-                value={formData.location}
-                onChange={handleChange}
-                placeholder="e.g., IIIT Hyderabad - Central Library, First Floor, Near Computers Section"
-                className={errors.location ? 'input-error' : ''}
-              />
-              <span className="input-hint">Be specific so others can find you easily</span>
-              {errors.location && <span className="error">{errors.location}</span>}
-            </div>
-          </div>
-
-          {/* Availability Section */}
-          <div className="form-section">
-            <h3 className="section-title">
-              <ion-icon name="calendar-outline"></ion-icon>
-              Availability Period
-            </h3>
-            
-            <div className="form-row">
-              <div className="form-group">
-                <label>Available From <span className="required">*</span></label>
-                <input
-                  type="date"
-                  name="availableFrom"
-                  value={formData.availableFrom}
-                  onChange={handleChange}
-                  min={new Date().toISOString().split('T')[0]}
-                  className={errors.availableFrom ? 'input-error' : ''}
-                />
-                {errors.availableFrom && <span className="error">{errors.availableFrom}</span>}
-              </div>
-
-              <div className="form-group">
-                <label>Available Until <span className="optional">(Optional)</span></label>
-                <input
-                  type="date"
-                  name="availableTo"
-                  value={formData.availableTo}
-                  onChange={handleChange}
-                  min={formData.availableFrom || new Date().toISOString().split('T')[0]}
-                />
-                {errors.availableTo && <span className="error">{errors.availableTo}</span>}
-              </div>
-            </div>
-          </div>
-
-          {/* Additional Details Section */}
-          <div className="form-section">
-            <h3 className="section-title">
-              <ion-icon name="settings-outline"></ion-icon>
-              Additional Details
-            </h3>
-
-            <div className="form-group">
-              <label>Image URL <span className="optional">(Optional)</span></label>
-              <input
-                type="url"
-                name="image"
-                value={formData.image}
-                onChange={handleChange}
-                placeholder="https://example.com/image.jpg"
-                className={errors.image ? 'input-error' : ''}
-              />
-              <span className="input-hint">Add a photo to help others identify the resource</span>
-              {errors.image && <span className="error">{errors.image}</span>}
-            </div>
-
-            <div className="form-group">
-              <label>Preferred Contact Method</label>
-              <div className="radio-group">
-                <label className="radio-label">
-                  <input
-                    type="radio"
-                    name="contactPreference"
-                    value="email"
-                    checked={formData.contactPreference === 'email'}
-                    onChange={handleChange}
-                  />
-                  <span>📧 Email</span>
-                </label>
-                <label className="radio-label">
-                  <input
-                    type="radio"
-                    name="contactPreference"
-                    value="chat"
-                    checked={formData.contactPreference === 'chat'}
-                    onChange={handleChange}
-                  />
-                  <span>💬 In-App Chat</span>
-                </label>
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label>Lending Terms <span className="optional">(Optional)</span></label>
-              <textarea
-                name="terms"
-                value={formData.terms}
-                onChange={handleChange}
-                placeholder="e.g., Maximum lending period: 2 weeks. Please return in same condition."
-                rows="2"
-              />
+              <label>Year</label>
+              <select name="year" value={formData.year} onChange={handleChange}>
+                <option value="">-- Select Year --</option>
+                {YEARS.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
           <div className="form-actions">
             <button type="submit" className="btn-primary btn-large" disabled={uploading || loading}>
               <ion-icon name="cloud-upload-outline"></ion-icon>
-              {uploading ? `Uploading... ${uploadProgress}%` : loading ? 'Posting Resource...' : 'Post Resource'}
+              {uploading ? 'Submitting...' : loading ? 'Posting Resource...' : 'Post Resource'}
             </button>
             <button 
               type="button" 

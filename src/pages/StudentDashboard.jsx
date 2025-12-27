@@ -6,6 +6,8 @@ import ResourceCard from '../components/ResourceCard';
 import ResourcePreviewModal from '../components/ResourcePreviewModal';
 import { ROUTES } from '../constants/routes';
 import { CATEGORY_LABELS, FILTER_ALL, RESOURCE_CATEGORIES } from '../constants/resources';
+import { DEPARTMENTS } from '../constants/departments';
+import { YEARS } from '../constants/years';
 import { UI_TEXT } from '../constants/uiText';
 import '../styles/student-dashboard.css';
 
@@ -17,6 +19,8 @@ export default function StudentDashboard() {
   const [selectedCategory, setSelectedCategory] = useState(FILTER_ALL);
   // Students can only see resources from their own college
   const userCollege = userProfile?.college;
+  const [selectedDepartment, setSelectedDepartment] = useState(FILTER_ALL);
+  const [selectedYear, setSelectedYear] = useState(FILTER_ALL);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedResource, setSelectedResource] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -43,6 +47,34 @@ export default function StudentDashboard() {
       fetchFavorites(user.uid);
     }
   }, [selectedCategory, userCollege, fetchResources, fetchFavorites, user]);
+
+  // Filtered resources
+  const filteredResources = useMemo(() => {
+    let filtered = [...resources];
+
+    // Apply department filter
+    if (selectedDepartment !== FILTER_ALL) {
+      filtered = filtered.filter((r) => r.department === selectedDepartment);
+    }
+
+    // Apply year filter
+    if (selectedYear !== FILTER_ALL) {
+      filtered = filtered.filter((r) => r.year === selectedYear);
+    }
+
+    // Apply search term
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(
+        (r) =>
+          r.title?.toLowerCase().includes(term) ||
+          r.description?.toLowerCase().includes(term) ||
+          r.category?.toLowerCase().includes(term)
+      );
+    }
+
+    return filtered;
+  }, [resources, selectedDepartment, selectedYear, searchTerm]);
 
   const handleSearch = (e) => {
     const term = e.target.value;
@@ -175,10 +207,44 @@ export default function StudentDashboard() {
             </div>
           </div>
 
+          <div className="filter-section">
+            <h4>Department</h4>
+            <select
+              value={selectedDepartment}
+              onChange={(e) => setSelectedDepartment(e.target.value)}
+              className="filter-select"
+            >
+              <option value={FILTER_ALL}>All Departments</option>
+              {DEPARTMENTS.map((dept) => (
+                <option key={dept} value={dept}>
+                  {dept}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="filter-section">
+            <h4>Year</h4>
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
+              className="filter-select"
+            >
+              <option value={FILTER_ALL}>All Years</option>
+              {YEARS.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <button
             className="btn-secondary"
             onClick={() => {
               setSelectedCategory(FILTER_ALL);
+              setSelectedDepartment(FILTER_ALL);
+              setSelectedYear(FILTER_ALL);
               setSearchTerm('');
             }}
           >
@@ -188,14 +254,12 @@ export default function StudentDashboard() {
           {/* Stats */}
           <div className="sidebar-stats">
             <div className="stat-box">
-              <span className="stat-number">{resources.length}</span>
-              <span className="stat-label">{UI_TEXT.resources}</span>
+              <span className="stat-number">{filteredResources.length}</span>
+              <span className="stat-label">Filtered Results</span>
             </div>
             <div className="stat-box">
-              <span className="stat-number">
-                {resources.reduce((sum, r) => sum + (r.requests?.length || 0), 0)}
-              </span>
-              <span className="stat-label">{UI_TEXT.requests}</span>
+              <span className="stat-number">{resources.length}</span>
+              <span className="stat-label">{UI_TEXT.resources}</span>
             </div>
           </div>
         </aside>
@@ -204,10 +268,10 @@ export default function StudentDashboard() {
         <main className="main-content">
           <div className="resources-section">
             <h2>
-              {UI_TEXT.availableResources} ({resources.length})
+              {UI_TEXT.availableResources} ({filteredResources.length})
             </h2>
 
-            {resources.length === 0 ? (
+            {filteredResources.length === 0 ? (
               <div className="empty-state">
                 <p>📚 {UI_TEXT.emptyTitle}</p>
                 <p className="empty-subtitle">
@@ -222,7 +286,7 @@ export default function StudentDashboard() {
               </div>
             ) : (
               <div className="resources-grid">
-                {resources.map((resource) => (
+                {filteredResources.map((resource) => (
                   <ResourceCard
                     key={resource.id}
                     resource={resource}

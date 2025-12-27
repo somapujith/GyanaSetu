@@ -31,10 +31,10 @@ export const useResourceStore = create((set, get) => ({
       set({ error: null, loading: true });
       const docRef = await addDoc(collection(db, 'resources'), {
         ...resourceData,
-        uploadedBy: userId,
+        uploadedBy: userId || resourceData.userId,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
-        status: 'pending', // pending, approved, rejected
+        status: resourceData.status || 'pending', // pending, approved, rejected
         downloads: 0,
         views: 0,
         favorites: 0,
