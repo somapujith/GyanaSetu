@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { useResourceStore } from '../store/resourceStore';
 import { ROUTES } from '../constants/routes';
@@ -17,6 +18,18 @@ export default function ResourcePreviewModal({ resource, onClose }) {
   const navigate = useNavigate();
   const { user, userProfile } = useAuthStore();
   const { incrementDownloads } = useResourceStore();
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   if (!resource) return null;
 
@@ -51,6 +64,96 @@ export default function ResourcePreviewModal({ resource, onClose }) {
 
   const isOwner = user?.uid === resource.userId;
 
+  // Mobile View Component
+  if (isMobile) {
+    return (
+      <div className="modal-overlay mobile-overlay" onClick={onClose}>
+        <div className="preview-modal mobile-modal" onClick={(e) => e.stopPropagation()}>
+          <button className="modal-close mobile-close" onClick={onClose} aria-label="Close">
+            <ion-icon name="close-outline" />
+          </button>
+
+          <div className="mobile-content">
+            {/* Image Section */}
+            <div className="mobile-image-section">
+              {resource.image ? (
+                <img src={resource.image} alt={resource.title} className="mobile-image" />
+              ) : (
+                <div className="mobile-placeholder">
+                  <span className="placeholder-icon">{CATEGORY_ICONS[resource.category] || '📦'}</span>
+                </div>
+              )}
+              <div className="mobile-badge">{resource.category}</div>
+            </div>
+
+            {/* Details Section */}
+            <div className="mobile-details">
+              <h2 className="mobile-title">{resource.title}</h2>
+              <p className="mobile-owner">
+                <ion-icon name="person-outline" />
+                <strong>{resource.userName || 'Unknown'}</strong>
+              </p>
+
+              <div className="mobile-description">
+                <h4>Description</h4>
+                <p>{resource.description || 'No description provided.'}</p>
+              </div>
+
+              <div className="mobile-info-grid">
+                <div className="mobile-info-item">
+                  <span className="mobile-label">College</span>
+                  <span className="mobile-value">{resource.college || 'N/A'}</span>
+                </div>
+                <div className="mobile-info-item">
+                  <span className="mobile-label">Category</span>
+                  <span className="mobile-value">{resource.category}</span>
+                </div>
+                <div className="mobile-info-item">
+                  <span className="mobile-label">Department</span>
+                  <span className="mobile-value">{resource.department || 'N/A'}</span>
+                </div>
+                <div className="mobile-info-item">
+                  <span className="mobile-label">Year</span>
+                  <span className="mobile-value">{resource.year || 'N/A'}</span>
+                </div>
+                <div className="mobile-info-item">
+                  <span className="mobile-label">Status</span>
+                  <span className={`mobile-status ${resource.status}`}>
+                    {resource.status === 'available' ? '✅ Available' : '❌ Unavailable'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="mobile-contact">
+                <h4>Contact</h4>
+                <p>
+                  <ion-icon name="mail-outline" />
+                  {resource.userEmail || 'Not available'}
+                </p>
+              </div>
+
+              {/* Mobile Action Button */}
+              <div className="mobile-actions">
+                {isOwner ? (
+                  <button className="mobile-btn mobile-btn-edit" onClick={() => { onClose(); navigate(`/edit-resource/${resource.id}`); }}>
+                    <ion-icon name="create-outline" />
+                    Edit Resource
+                  </button>
+                ) : (
+                  <button className="mobile-btn mobile-btn-download" onClick={handleDownload}>
+                    <ion-icon name="download-outline" />
+                    Download Resource
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Desktop View Component (Original)
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="preview-modal" onClick={(e) => e.stopPropagation()}>
