@@ -541,12 +541,15 @@
 /* Responsive Design */
 @media (max-width: 768px) {
   .modal-overlay {
-    padding: 10px;
+    padding: 0;
+    align-items: flex-end;
   }
   
   .preview-modal {
-    border-radius: 16px;
-    max-height: 95vh;
+    border-radius: 24px 24px 0 0;
+    max-height: 92vh;
+    width: 100%;
+    max-width: 100%;
   }
   
   .preview-layout {
@@ -555,29 +558,96 @@
   }
   
   .preview-left {
-    padding: 20px;
+    padding: 20px 16px;
     min-height: auto;
   }
   
   .preview-image-container {
-    min-height: 200px;
+    min-height: 180px;
   }
   
   .preview-right {
-    padding: 25px;
+    padding: 20px 16px 30px;
+  }
+  
+  .detail-header {
+    padding-bottom: 16px;
   }
   
   .resource-title {
-    font-size: 22px;
+    font-size: 20px;
+    margin-bottom: 8px;
+  }
+  
+  .resource-owner {
+    font-size: 13px;
+  }
+  
+  .detail-section {
+    margin-bottom: 16px;
+  }
+  
+  .detail-section h4 {
+    font-size: 11px;
+    margin-bottom: 6px;
+  }
+  
+  .resource-description {
+    font-size: 14px;
+    line-height: 1.6;
   }
   
   .detail-grid {
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: 14px;
+    padding: 16px;
+  }
+  
+  .detail-item {
+    padding: 12px 0;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .detail-item:last-child {
+    border-bottom: none;
+  }
+  
+  .detail-label {
+    font-size: 10px;
+    margin-bottom: 4px;
+  }
+  
+  .detail-value {
+    font-size: 15px;
+  }
+  
+  .quick-info {
+    gap: 8px;
+    padding-top: 12px;
+  }
+  
+  .info-chip,
+  .status-chip {
+    padding: 6px 12px;
+    font-size: 11px;
   }
   
   .cta-buttons {
     flex-direction: column;
+    gap: 10px;
+    position: sticky;
+    bottom: 0;
+    background: white;
+    padding: 16px;
+    margin: 0 -16px -30px;
+    border-top: 1px solid #eee;
+  }
+  
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+    padding: 14px 20px;
+    font-size: 14px;
   }
   
   .modal-close {
@@ -585,6 +655,12 @@
     right: 12px;
     width: 36px;
     height: 36px;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  .modal-close:hover {
+    background: rgba(255, 255, 255, 1);
   }
 }
 
