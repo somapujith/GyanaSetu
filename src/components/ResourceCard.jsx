@@ -124,10 +124,10 @@ const ResourceCard = ({ resource, onPreview }) => {
         </div>
 
         <div className="card-footer">
-          <span className="condition-badge">{conditionLabels[resource.condition] || resource.condition}</span>
           <button className="btn-get-resource" onClick={handleViewDetails}>
             <ion-icon name="hand-right-outline"></ion-icon>
             Get Resource
+          </button>
           </button>
         </div>
       </div>
