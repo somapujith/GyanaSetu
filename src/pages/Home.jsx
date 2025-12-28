@@ -18,6 +18,7 @@ import {
   Users,
   X,
   Zap,
+  User,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../constants/routes';
@@ -164,20 +165,33 @@ export default function Home() {
 
             {/* Right side actions */}
             <div className="hidden md:flex items-center gap-4">
-              <button
-                type="button"
-                onClick={() => navigate(ROUTES.STUDENT_LOGIN)}
-                className="text-sm text-gray-400 hover:text-white transition-colors px-4 py-2"
-              >
-                Login
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate(ROUTES.STUDENT_SIGNUP)}
-                className="px-5 py-2 bg-gradient-to-r from-purple-500 to-cyan-500 text-white text-sm rounded-lg hover:opacity-90 transition-opacity shadow-lg shadow-purple-500/20"
-              >
-                Sign Up
-              </button>
+              {user ? (
+                <button
+                  type="button"
+                  onClick={() => navigate(ROUTES.PROFILE)}
+                  className="w-8 h-8 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-full flex items-center justify-center hover:shadow-lg hover:shadow-purple-500/50 transition-all"
+                  title="View Profile"
+                >
+                  <User className="w-4 h-4 text-white" />
+                </button>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => navigate(ROUTES.STUDENT_LOGIN)}
+                    className="text-sm text-gray-400 hover:text-white transition-colors px-4 py-2"
+                  >
+                    Login
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate(ROUTES.STUDENT_SIGNUP)}
+                    className="px-5 py-2 bg-gradient-to-r from-purple-500 to-cyan-500 text-white text-sm rounded-lg hover:opacity-90 transition-opacity shadow-lg shadow-purple-500/20"
+                  >
+                    Sign Up
+                  </button>
+                </>
+              )}
             </div>
 
             {/* Mobile menu button */}
@@ -216,26 +230,42 @@ export default function Home() {
                 </button>
               ))}
               <div className="pt-4 border-t border-white/10 space-y-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    navigate(ROUTES.STUDENT_LOGIN);
-                    setMobileMenuOpen(false);
-                  }}
-                  className="w-full text-sm text-gray-400 hover:text-white transition-colors py-2 text-left"
-                >
-                  Login
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    navigate(ROUTES.STUDENT_SIGNUP);
-                    setMobileMenuOpen(false);
-                  }}
-                  className="w-full px-5 py-3 bg-gradient-to-r from-purple-500 to-cyan-500 text-white text-sm rounded-lg hover:opacity-90 transition-opacity"
-                >
-                  Sign Up
-                </button>
+                {user ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigate(ROUTES.PROFILE);
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full text-sm text-gray-400 hover:text-white transition-colors py-2 text-left flex items-center gap-2"
+                  >
+                    <User className="w-4 h-4" />
+                    View Profile
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigate(ROUTES.STUDENT_LOGIN);
+                        setMobileMenuOpen(false);
+                      }}
+                      className="w-full text-sm text-gray-400 hover:text-white transition-colors py-2 text-left"
+                    >
+                      Login
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigate(ROUTES.STUDENT_SIGNUP);
+                        setMobileMenuOpen(false);
+                      }}
+                      className="w-full px-5 py-3 bg-gradient-to-r from-purple-500 to-cyan-500 text-white text-sm rounded-lg hover:opacity-90 transition-opacity"
+                    >
+                      Sign Up
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </motion.div>
