@@ -546,6 +546,7 @@
    ============================================ */
 
 /* Mobile Overlay */
+.preview-right::-webkit-scrollbar-thumb {
   background: #d1d5db;
   border-radius: 3px;
 }

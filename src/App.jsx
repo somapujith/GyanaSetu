@@ -15,6 +15,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import PostResource from './pages/PostResource';
 import ResourceDetail from './pages/ResourceDetail';
 import MyFavorites from './pages/MyFavorites';
+import BrowseResources from './pages/BrowseResources';
 
 import Profile from './pages/Profile';
 import ProfileNotifications from './pages/ProfileNotifications';
@@ -41,7 +42,8 @@ const ProtectedRoute = ({ children, requiredRole = null }) => {
   }
 
   if (!user) {
-    return <Navigate to="/" />;
+    const loginRoute = requiredRole === 'admin' ? ROUTES.ADMIN_LOGIN : ROUTES.STUDENT_LOGIN;
+    return <Navigate to={loginRoute} replace />;
   }
 
   if (requiredRole && userProfile?.role !== requiredRole) {
@@ -102,6 +104,14 @@ function App() {
         {/* Student Routes */}
         <Route path="/student-login" element={<StudentLogin />} />
         <Route path="/student-signup" element={<StudentSignup />} />
+        <Route
+          path="/browse"
+          element={
+            <ProtectedRoute requiredRole="student">
+              <BrowseResources />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/student-dashboard"
           element={
@@ -168,6 +178,9 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
       </Routes>
     </Router>
   );
